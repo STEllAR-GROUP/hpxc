@@ -82,5 +82,19 @@ extern "C"
         if (self)
             self->yield(hpx::threads::terminated);    // this will not return
     }
+
+    hpxc_thread_t hpxc_thread_self()
+    {
+        hpx::threads::thread_self* self = hpx::threads::get_self_ptr();
+
+        if (self)
+        {
+            hpxc_thread_t t = { self->get_thread_id() };
+            return t;
+        }
+
+        hpxc_thread_t t = { hpx::threads::invalid_thread_id };
+        return t;         
+    }
 }
 

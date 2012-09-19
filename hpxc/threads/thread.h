@@ -34,6 +34,13 @@ extern "C"
     /// \brief Terminates the calling thread.
     // FIXME: value_ptr not implemented.
     HPXC_API_EXPORT void hpxc_thread_exit(void* value_ptr);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the ID of the calling thread.
+    ///
+    /// \note Returns the equivalent of \a hpx::threads::thread_invalid_id if
+    ///       called from outside of an hpx-thread.
+    HPXC_API_EXPORT hpxc_thread_t hpxc_thread_self(void);
 }
 
 #endif
