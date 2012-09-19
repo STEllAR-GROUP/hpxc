@@ -7,6 +7,8 @@
 #if !defined(HPXC_THREADS_18_SEP_2012_0134PM)
 #define HPXC_THREADS_18_SEP_2012_0134PM
 
+#include <hpxc/config/config.h>
+
 // Basic thread functions
 #include <hpxc/threads/thread.h>
 

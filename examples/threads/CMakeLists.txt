@@ -9,8 +9,10 @@ set(example_programs
     join_thread
    )
 
+add_definitions("-DHPXC_APPLICATION_EXPORTS")
+
 foreach(example_program ${example_programs})
-  set(sources ${example_program}.cpp)
+  set(sources ${example_program}.c)
 
   source_group("Source Files" FILES ${sources})
 
@@ -19,7 +21,8 @@ foreach(example_program ${example_programs})
                      SOURCES ${sources}
                      ${${example_program}_FLAGS}
                      DEPENDENCIES hpxc_lib
-                     FOLDER "Examples/Threads/${example_program}")
+                     FOLDER "Examples/Threads/${example_program}"
+                     NOHPXINIT)
 
   # add a custom target for this example
   add_hpx_pseudo_target(examples.threads.${example_program})

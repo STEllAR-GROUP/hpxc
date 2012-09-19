@@ -29,13 +29,14 @@ add_hpx_source_group(
 add_definitions("-DHPXC_EXPORTS")
 
 add_hpx_library(hpxc SHARED
-  ${hpxc_SOURCES} ${hpxc_HEADERS}
+  ${hpxc_SOURCES} ${hpxc_HEADERS} 
+  DEPENDENCIES hpx_init${HPX_DEBUG_POSTFIX}
   ESSENTIAL)
 
 set_target_properties(hpxc_lib PROPERTIES
   VERSION ${HPXC_VERSION}
   SOVERSION ${HPXC_SOVERSION}
   CLEAN_DIRECT_OUTPUT 1
-  OUTPUT_NAME hpxc
+  OUTPUT_NAME hpxc${HPX_DEBUG_POSTFIX}
   FOLDER "Core")
 

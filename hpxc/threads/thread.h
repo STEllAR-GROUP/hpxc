@@ -7,13 +7,15 @@
 #if !defined(HPXC_THREADS_THREAD_18_SEP_2012_0134PM)
 #define HPXC_THREADS_THREAD_18_SEP_2012_0134PM
 
-#include <hpxc/config/export_definitions.hpp>
+#include <hpxc/config/export_definitions.h>
 
-extern "C"
-{
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
     ///////////////////////////////////////////////////////////////////////////
-    struct hpxc_thread_t { void* handle; };
-    struct hpxc_thread_attr_t { void* handle; };
+    typedef struct hpxc_thread_t { void* handle; } hpxc_thread_t;
+    typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Creates a new thread of execution.
@@ -41,7 +43,9 @@ extern "C"
     /// \note Returns the equivalent of \a hpx::threads::thread_invalid_id if
     ///       called from outside of an hpx-thread.
     HPXC_API_EXPORT hpxc_thread_t hpxc_thread_self(void);
-}
 
+#if defined(__cplusplus)
+}
 #endif
 
+#endif

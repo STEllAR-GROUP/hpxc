@@ -52,18 +52,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // define the export/import helper macros to be used for component modules
-#if defined(HPXC_COMPONENT_EXPORTS)
-# define  HPXC_COMPONENT_EXPORT   HPXC_SYMBOL_EXPORT
+#if defined(HPXC_APPLICATION_EXPORTS)
+# define  HPXC_APPLICATION_EXPORT HPXC_SYMBOL_EXPORT
 #else
-# define  HPXC_COMPONENT_EXPORT   HPXC_SYMBOL_IMPORT
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
-// define the export/import helper macros to be used for component modules
-#if defined(HPXC_LIBRARY_EXPORTS)
-# define  HPXC_LIBRARY_EXPORT     HPXC_SYMBOL_EXPORT
-#else
-# define  HPXC_LIBRARY_EXPORT     HPXC_SYMBOL_IMPORT
+# define  HPXC_APPLICATION_EXPORT HPXC_SYMBOL_IMPORT
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
