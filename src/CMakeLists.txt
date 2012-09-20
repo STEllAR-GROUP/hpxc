@@ -33,6 +33,9 @@ add_hpx_library(hpxc SHARED
   DEPENDENCIES hpx_init${HPX_DEBUG_POSTFIX}
   ESSENTIAL)
 
+# Don't cause our applications to link against hpx_init.
+set_target_properties(hpxc_lib PROPERTIES LINK_INTERFACE_LIBRARIES "") 
+
 set_target_properties(hpxc_lib PROPERTIES
   VERSION ${HPXC_VERSION}
   SOVERSION ${HPXC_SOVERSION}
