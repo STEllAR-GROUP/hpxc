@@ -28,10 +28,22 @@ add_hpx_source_group(
 
 add_definitions("-DHPXC_EXPORTS")
 
-add_hpx_library(hpxc SHARED
-  ${hpxc_SOURCES} ${hpxc_HEADERS} 
-  DEPENDENCIES hpx_init${HPX_DEBUG_POSTFIX}
-  ESSENTIAL)
+# We intentionally check HPX_BUILD_TYPE, not the application build type, as
+# the HPX libraries will be suffixed depending on their build type, not ours.
+if("${HPX_BUILD_TYPE}" STREQUAL "Debug" OR
+   "${HPX_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+  add_hpx_library(hpxc SHARED
+    ${hpxc_SOURCES} ${hpxc_HEADERS} 
+    DEPENDENCIES hpx_init${HPX_DEBUG_POSTFIX}
+    OUTPUT_SUFFIX lib/hpx
+    ESSENTIAL)
+else()
+  add_hpx_library(hpxc SHARED
+    ${hpxc_SOURCES} ${hpxc_HEADERS} 
+    DEPENDENCIES hpx_init
+    OUTPUT_SUFFIX lib/hpx
+    ESSENTIAL)
+endif()
 
 # Don't cause our applications to link against hpx_init.
 set_target_properties(hpxc_lib PROPERTIES LINK_INTERFACE_LIBRARIES "") 

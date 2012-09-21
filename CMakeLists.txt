@@ -30,6 +30,10 @@ endif()
 
 find_package(HPX)
 
+if(NOT MSVC)
+  set(HPX_RPATH "${HPX_RPATH}:${CMAKE_INSTALL_PREFIX}/lib/hpx:${CMAKE_BINARY_DIR}/lib/hpx")
+endif()
+
 include_directories(${HPX_INCLUDE_DIR})
 link_directories(${HPX_LIBRARY_DIR})
 

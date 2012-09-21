@@ -27,14 +27,12 @@ extern "C" {
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Suspend the calling thread until the target thread terminates.
-    // FIXME: value_ptr not implemented.
     HPXC_API_EXPORT int hpxc_thread_join(
         hpxc_thread_t* thread_id,
         void** value_ptr);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Terminates the calling thread.
-    // FIXME: value_ptr not implemented.
     HPXC_API_EXPORT void hpxc_thread_exit(void* value_ptr);
 
     ///////////////////////////////////////////////////////////////////////////

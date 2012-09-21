@@ -22,6 +22,7 @@ foreach(example_program ${example_programs})
                      ${${example_program}_FLAGS}
                      DEPENDENCIES hpxc_lib
                      FOLDER "Examples/Threads/${example_program}"
+                     OUTPUT_SUFFIX bin
                      NOHPXINIT)
 
   # add a custom target for this example
