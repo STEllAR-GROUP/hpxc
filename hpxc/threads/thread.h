@@ -7,7 +7,7 @@
 #if !defined(HPXC_THREADS_THREAD_18_SEP_2012_0134PM)
 #define HPXC_THREADS_THREAD_18_SEP_2012_0134PM
 
-#include <hpxc/config/export_definitions.h>
+#include <hpxc/config.h>
 
 #if defined(__cplusplus)
 extern "C" {

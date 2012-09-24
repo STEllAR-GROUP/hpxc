@@ -39,7 +39,7 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-// define the export/import helper macros used by the runtime module
+// define the export/import helper macros used by the core library
 #if defined(HPXC_EXPORTS)
 # define  HPXC_EXPORT             HPXC_SYMBOL_EXPORT
 # define  HPXC_EXCEPTION_EXPORT   HPXC_SYMBOL_EXPORT
@@ -51,7 +51,7 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-// define the export/import helper macros to be used for component modules
+// define the export/import helper macros used by applications 
 #if defined(HPXC_APPLICATION_EXPORTS)
 # define  HPXC_APPLICATION_EXPORT HPXC_SYMBOL_EXPORT
 #else
@@ -59,8 +59,7 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-// helper macro for symbols which have to be exported from the runtime and all
-// components
+// define the export/import helper macros for exceptions 
 #if defined(HPXC_EXPORTS)
 # define HPXC_ALWAYS_EXPORT       HPXC_SYMBOL_EXPORT
 #else
