@@ -3,7 +3,6 @@
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-# TODO: Make these C programs
 set(example_programs
     create_thread
     join_thread
@@ -21,6 +20,7 @@ foreach(example_program ${example_programs})
                      SOURCES ${sources}
                      ${${example_program}_FLAGS}
                      DEPENDENCIES hpxc_lib
+                     LANGUAGE C
                      FOLDER "Examples/Threads/${example_program}"
                      OUTPUT_SUFFIX bin
                      NOHPXINIT)
