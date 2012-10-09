@@ -6,6 +6,7 @@
 set(example_programs
     create_thread
     join_thread
+	counter
    )
 
 add_definitions("-DHPXC_APPLICATION_EXPORTS")

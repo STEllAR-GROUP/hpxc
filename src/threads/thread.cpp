@@ -46,8 +46,6 @@ extern "C"
                 HPX_STD_BIND(wrapper_function, p, thread_function, arguments), 
                 "hpxc_thread_create");
 
-		std::cout << "thread_id = " << id << std::endl;
-
 		thread_handle *th = new thread_handle;
 		th->id = id;
 		th->promise = p;
@@ -67,6 +65,49 @@ inline void resume_thread(hpx::threads::thread_id_type id, void** value_ptr)
 
 extern "C"
 {
+	int hpxc_mutex_init(hpxc_mutex_t *mutex,void *ignored)
+	{
+		mutex->handle = new hpx::lcos::local::spinlock();
+		return 0;
+	}
+	hpxc_mutex_t hpxc_mutex_alloc()
+	{
+		hpxc_mutex_t mut;
+		mut.handle = new hpx::lcos::local::spinlock();
+		return mut;
+	}
+	void hpxc_mutex_destroy(hpxc_mutex_t *mutex)
+	{
+		hpx::lcos::local::spinlock *lock =
+			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+		delete lock;
+		mutex->handle = 0;
+	}
+	int hpxc_mutex_lock(hpxc_mutex_t *mutex)
+	{
+		if(mutex->handle == 0)
+			return -1;
+		hpx::lcos::local::spinlock *lock =
+			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+		lock->lock();
+		return 0;
+	}
+	int hpxc_mutex_unlock(hpxc_mutex_t *mutex)
+	{
+		if(mutex->handle == 0)
+			return -1;
+		hpx::lcos::local::spinlock *lock =
+			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+		lock->unlock();
+		return 0;
+	}
+	int hpxc_mutex_trylock(hpxc_mutex_t *mutex)
+	{
+		hpx::lcos::local::spinlock *lock =
+			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+		return lock->try_lock();
+	}
+
     ///////////////////////////////////////////////////////////////////////////
     // IMPLEMENT: value_ptr.
     int hpxc_thread_join(
@@ -93,11 +134,12 @@ extern "C"
             return ESRCH;
 
 		if(thread_id->handle == 0)
-			return 
-        thread_handle *th
-            = reinterpret_cast<thread_handle*>(thread_id->handle);
+			return -1;
+        thread_handle *th =
+            reinterpret_cast<thread_handle*>(thread_id->handle);
 		th->future.cancel();
 		delete th;
+		thread_id->handle = 0;
 		return 0;
     }
 

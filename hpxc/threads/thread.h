@@ -14,7 +14,8 @@ extern "C" {
 #endif
 
     ///////////////////////////////////////////////////////////////////////////
-    typedef struct hpxc_thread_t { void* handle; void *handle2; } hpxc_thread_t;
+    typedef struct hpxc_thread_t { void* handle; } hpxc_thread_t;
+    typedef struct hpxc_mutex_t { void* handle; } hpxc_mutex_t;
     typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -44,6 +45,14 @@ extern "C" {
     /// \note Returns the equivalent of \a hpx::threads::thread_invalid_id if
     ///       called from outside of an hpx-thread.
     HPXC_API_EXPORT hpxc_thread_t hpxc_thread_self(void);
+
+	HPXC_API_EXPORT int hpxc_mutex_init(hpxc_mutex_t *mut,void *unused);
+	HPXC_API_EXPORT hpxc_mutex_t hpxc_mutex_alloc();
+	HPXC_API_EXPORT int hpxc_mutex_lock(hpxc_mutex_t *mut);
+	HPXC_API_EXPORT int hpxc_mutex_unlock(hpxc_mutex_t *mut);
+	HPXC_API_EXPORT int hpxc_mutex_trylock(hpxc_mutex_t *mut);
+	HPXC_API_EXPORT void hpxc_mutex_destroy(hpxc_mutex_t *mut);
+#define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 
 #if defined(__cplusplus)
 }
