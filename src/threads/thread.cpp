@@ -9,6 +9,24 @@
 
 #include <errno.h>
 
+void wrapper_function(
+		boost::shared_ptr<hpx::lcos::local::promise<void*> > promise,
+		void*(*thread_function)(void*),void *arguments)
+{
+	boost::shared_ptr<hpx::lcos::local::promise<void*> > dup = promise;
+	try {
+		promise->set_value(thread_function(arguments));
+	} catch(void *ret) {
+		promise->set_value(ret);
+	}
+}
+
+struct thread_handle {
+	hpx::threads::thread_id_type id;
+	boost::shared_ptr<hpx::lcos::local::promise<void*> > promise;
+	hpx::lcos::future<void*> future;
+};
+
 extern "C"
 {
     ///////////////////////////////////////////////////////////////////////////
@@ -19,12 +37,22 @@ extern "C"
         void* (*thread_function)(void*), 
         void* arguments)
     {
+    	boost::shared_ptr<hpx::lcos::local::promise<void*> > p =
+        	boost::make_shared<hpx::lcos::local::promise<void*> >();
+
         hpx::threads::thread_id_type id = 
             hpx::applier::register_thread(
-                HPX_STD_BIND(thread_function, arguments), 
+                //HPX_STD_BIND(thread_function, arguments), 
+                HPX_STD_BIND(wrapper_function, p, thread_function, arguments), 
                 "hpxc_thread_create");
 
-        hpxc_thread_t t = { id };
+		std::cout << "thread_id = " << id << std::endl;
+
+		thread_handle *th = new thread_handle;
+		th->id = id;
+		th->promise = p;
+		th->future = p->get_future();
+        hpxc_thread_t t = { th };
         *thread_id = t;
 
         return 0;
@@ -48,34 +76,29 @@ extern "C"
         if (!thread_id)
             return ESRCH;
 
-        hpx::threads::thread_id_type target_id
-            = reinterpret_cast<hpx::threads::thread_id_type>(thread_id->handle);
+        thread_handle *th
+            = reinterpret_cast<thread_handle*>(thread_id->handle);
+		if(value_ptr != 0)
+			*value_ptr = th->future.get();
+		else
+			th->future.get();
+		delete th;
+		return 0;
+    }
 
-        if (hpx::threads::invalid_thread_id == target_id)
+    int hpxc_thread_detach(
+        hpxc_thread_t* thread_id)
+    {
+        if (!thread_id)
             return ESRCH;
 
-        // register callback function to be called when thread exits
-        hpx::threads::thread_id_type this_id
-            = hpx::threads::get_self().get_thread_id();
-
-         // make sure the calling thread isn't the target thread
-        if (this_id == target_id)
-            return EDEADLK;
-
-        hpx::this_thread::interruption_point();
-
-        if (hpx::threads::add_thread_exit_callback(target_id,
-                HPX_STD_BIND(&resume_thread, this_id, value_ptr)))
-        {
-            // wait for thread to be terminated
-            hpx::this_thread::suspend(hpx::threads::suspended,
-                "hpxc_thread_join");
-            return 0;
-        }
-        else
-        {
-            return EINVAL;
-        }
+		if(thread_id->handle == 0)
+			return 
+        thread_handle *th
+            = reinterpret_cast<thread_handle*>(thread_id->handle);
+		th->future.cancel();
+		delete th;
+		return 0;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -83,9 +106,7 @@ extern "C"
     // IMPLEMENT: value_ptr.
     void hpxc_thread_exit(void* value_ptr)
     {
-        hpx::threads::thread_self* self = hpx::threads::get_self_ptr();
-        if (self)
-            self->yield(hpx::threads::terminated);    // this will not return
+		throw value_ptr;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -102,5 +123,13 @@ extern "C"
         hpxc_thread_t t = { hpx::threads::invalid_thread_id };
         return t;         
     }
-}
+	void show_thread()
+	{
+        hpx::threads::thread_self* self = hpx::threads::get_self_ptr();
 
+        if (self)
+        {
+            std::cout << "self=" << self->get_thread_id() << std::endl;
+        }
+	}
+}

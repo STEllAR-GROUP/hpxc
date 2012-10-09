@@ -16,6 +16,7 @@ std::string get_executable_filename();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Default implementation of main() if all the user provides is hpx::user_main.
+
 HPXC_SYMBOL_EXPORT int main(int argc, char *argv[])
 {
     if (1 <= argc)
@@ -23,6 +24,20 @@ HPXC_SYMBOL_EXPORT int main(int argc, char *argv[])
     else
         return hpx::init(argc, argv);
 }
+
+void (*user_launch_func)()=0;
+
+int hpx_launch(boost::program_options::variables_map& vm) {
+	user_launch_func();
+    return hpx::finalize();
+}
+
+extern "C" void hpxc_launch(int argc,char *argv[],void (*launch_func)())
+{
+	user_launch_func = launch_func;
+	hpx::init(hpx_launch,argv[0],argc,argv);
+}
+
 
 // IMPLEMENT: Support for the main(void) signature.
 int hpx_main(int argc, char* argv[])
@@ -32,13 +47,14 @@ int hpx_main(int argc, char* argv[])
         typedef boost::function<void(function_type)> deleter_type;
 
         // Bind the hpxc_user_main symbol dynamically and invoke it.
-        boost::plugin::dll this_exe(get_executable_filename());
+        boost::plugin::dll this_exe("create_thread");//get_executable_filename());
         std::pair<function_type, deleter_type> p = 
             this_exe.get<function_type, deleter_type>("hpxc_user_main");
 
         // Invoke hpxc_user_main.
         hpx::threads::thread_id_type id = 
             hpx::applier::register_thread(
+				//HPX_STD_BIND(user_main));
                 HPX_STD_BIND(*p.first, argc, argv), 
                 "hpxc_user_main");
 

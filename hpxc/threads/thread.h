@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
     ///////////////////////////////////////////////////////////////////////////
-    typedef struct hpxc_thread_t { void* handle; } hpxc_thread_t;
+    typedef struct hpxc_thread_t { void* handle; void *handle2; } hpxc_thread_t;
     typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -30,6 +30,9 @@ extern "C" {
     HPXC_API_EXPORT int hpxc_thread_join(
         hpxc_thread_t* thread_id,
         void** value_ptr);
+
+    HPXC_API_EXPORT int hpxc_thread_detach(
+        hpxc_thread_t* thread_id);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Terminates the calling thread.

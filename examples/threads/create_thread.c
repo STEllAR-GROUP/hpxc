@@ -6,21 +6,36 @@
 
 #include <hpxc/threads.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 void* hello_thread(void* p)
 {
-    printf("hello world\n");
-    hpxc_thread_exit(NULL);
-    return NULL;
+	int *n = (int *)p;
+    printf("hello world=%d\n",*n);
+	int *r = (int *)malloc(sizeof(int));
+	*r = 2*(*n);
+	free(p);
+	hpxc_thread_exit(r);
+    return r;
 }
 
-int main(int argc, char** argv)
+void my_launch()
 {
     hpxc_thread_t thread;
-    hpxc_thread_create(&thread, NULL, hello_thread, NULL); 
-
-    hpxc_thread_exit(NULL);
-    return 0;
+	int *n = (int *)malloc(sizeof(int));
+	*n = 120;
+    hpxc_thread_create(&thread, NULL, hello_thread, n); 
+	int *r;
+	hpxc_thread_join(&thread,(void **)&r);
+	printf("r=%d\n",*r);
+	free(r);
 }
 
+extern void hpxc_launch(int argc,char *argv[],void (*launch)());
 
+#undef main
+int main(int argc, char* argv[]) {
+	hpxc_launch(argc,argv,my_launch);
+	return 0;
+}
