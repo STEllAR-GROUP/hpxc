@@ -33,7 +33,7 @@ void my_launch()
 	}
 	for(i=0;i<NTHREADS;i++)
 	{
-		hpxc_thread_join(&threads[i],0);
+		hpxc_thread_join(threads[i],0);
 	}
 	printf("counter=%d\n",counter);
 }

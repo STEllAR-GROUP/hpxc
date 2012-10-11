@@ -6,26 +6,32 @@
 
 #include <hpx/hpx.hpp>
 #include <hpxc/threads.h>
+#include <boost/atomic.hpp>
 
 #include <errno.h>
 
-void wrapper_function(
-		boost::shared_ptr<hpx::lcos::local::promise<void*> > promise,
-		void*(*thread_function)(void*),void *arguments)
-{
-	boost::shared_ptr<hpx::lcos::local::promise<void*> > dup = promise;
-	try {
-		promise->set_value(thread_function(arguments));
-	} catch(void *ret) {
-		promise->set_value(ret);
-	}
-}
-
 struct thread_handle {
+	boost::atomic<int> refc;
 	hpx::threads::thread_id_type id;
-	boost::shared_ptr<hpx::lcos::local::promise<void*> > promise;
+	hpx::lcos::local::promise<void*> promise;
 	hpx::lcos::future<void*> future;
+
+	thread_handle() : refc(2) {}
 };
+
+void wrapper_function(
+	thread_handle *handle,
+	void *(*thread_function)(void*),
+	void *arguments)
+{
+	try {
+		handle->promise.set_value(thread_function(arguments));
+	} catch(void *ret) {
+		handle->promise.set_value(ret);
+	}
+	int r = --handle->refc;//__sync_fetch_and_add(&handle->refc,-1);
+	if(r == 0) delete handle;
+}
 
 extern "C"
 {
@@ -37,19 +43,19 @@ extern "C"
         void* (*thread_function)(void*), 
         void* arguments)
     {
-    	boost::shared_ptr<hpx::lcos::local::promise<void*> > p =
-        	boost::make_shared<hpx::lcos::local::promise<void*> >();
+    	//boost::shared_ptr<hpx::lcos::local::promise<void*> > p =
+        	//boost::make_shared<hpx::lcos::local::promise<void*> >();
+
+		thread_handle *th = new thread_handle;
 
         hpx::threads::thread_id_type id = 
             hpx::applier::register_thread(
                 //HPX_STD_BIND(thread_function, arguments), 
-                HPX_STD_BIND(wrapper_function, p, thread_function, arguments), 
+                HPX_STD_BIND(wrapper_function, th, thread_function, arguments), 
                 "hpxc_thread_create");
-
-		thread_handle *th = new thread_handle;
 		th->id = id;
-		th->promise = p;
-		th->future = p->get_future();
+		//th->promise = p;
+		th->future = th->promise.get_future();
         hpxc_thread_t t = { th };
         *thread_id = t;
 
@@ -63,8 +69,61 @@ inline void resume_thread(hpx::threads::thread_id_type id, void** value_ptr)
     hpx::threads::set_thread_state(id, hpx::threads::pending);
 }
 
+struct cond_internal {
+   	std::vector<
+		boost::shared_ptr<
+			hpx::lcos::local::promise<int>
+		>
+	> waiting;
+	cond_internal() : waiting() {}
+};
+
 extern "C"
 {
+	int hpxc_cond_init(hpxc_cond_t *cond,void *unused)
+	{
+		cond->handle = new cond_internal();
+		return 0;
+	}
+	int hpxc_cond_wait(hpxc_cond_t *cond,hpxc_mutex_t *mutex)
+	{
+    	cond_internal *cond_in =
+			reinterpret_cast<cond_internal *>(cond->handle);
+		hpx::lcos::local::spinlock *lock =
+			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+
+    	boost::shared_ptr<hpx::lcos::local::promise<int> > p =
+        	boost::make_shared<hpx::lcos::local::promise<int> >();
+		cond_in->waiting.push_back(p);
+
+		lock->unlock();
+		p->get_future().get();
+		lock->lock();
+		return 0;
+	}
+	int hpxc_cond_broadcast(hpxc_cond_t *cond)
+	{
+    	cond_internal *cond_in =
+			reinterpret_cast<cond_internal *>(cond->handle);
+		for(auto i=cond_in->waiting.begin(); i != cond_in->waiting.end();++i)
+		{
+			(*i)->set_value(0);
+		}
+		cond_in->waiting.clear();
+		return 0;
+	}
+	int hpxc_cond_signal(hpxc_cond_t *cond)
+	{
+    	cond_internal *cond_in =
+			reinterpret_cast<cond_internal *>(cond->handle);
+		if(cond_in->waiting.size() > 0)
+		{
+			cond_in->waiting.erase(
+				cond_in->waiting.begin(),
+				cond_in->waiting.begin()+1);
+		}
+		return 0;
+	}
 	int hpxc_mutex_init(hpxc_mutex_t *mutex,void *ignored)
 	{
 		mutex->handle = new hpx::lcos::local::spinlock();
@@ -111,35 +170,40 @@ extern "C"
     ///////////////////////////////////////////////////////////////////////////
     // IMPLEMENT: value_ptr.
     int hpxc_thread_join(
-        hpxc_thread_t* thread_id,
+        hpxc_thread_t thread_id,
         void** value_ptr)
     {
-        if (!thread_id)
-            return ESRCH;
+		if(thread_id.handle == NULL)
+			return -1;
 
-        thread_handle *th
-            = reinterpret_cast<thread_handle*>(thread_id->handle);
+        thread_handle *handle
+            = reinterpret_cast<thread_handle*>(thread_id.handle);
 		if(value_ptr != 0)
-			*value_ptr = th->future.get();
+			*value_ptr = handle->future.get();
 		else
-			th->future.get();
-		delete th;
+			handle->future.get();
+		int r = --handle->refc;//__sync_fetch_and_add(&handle->refc,-1);
+		if(r == 0) {
+			delete handle;
+			thread_id.handle = NULL;
+		}
 		return 0;
     }
 
     int hpxc_thread_detach(
-        hpxc_thread_t* thread_id)
+        hpxc_thread_t thread_id)
     {
-        if (!thread_id)
-            return ESRCH;
-
-		if(thread_id->handle == 0)
+		if(thread_id.handle == 0)
 			return -1;
-        thread_handle *th =
-            reinterpret_cast<thread_handle*>(thread_id->handle);
-		th->future.cancel();
-		delete th;
-		thread_id->handle = 0;
+
+        thread_handle *handle =
+            reinterpret_cast<thread_handle*>(thread_id.handle);
+		//handle->future.cancel();
+		int r = --handle->refc;//__sync_fetch_and_add(&handle->refc,-1);
+		if(r == 0) {
+			delete handle;
+			thread_id.handle = NULL;
+		}
 		return 0;
     }
 

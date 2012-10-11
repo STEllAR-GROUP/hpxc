@@ -27,7 +27,7 @@ void my_launch()
 	*n = 120;
     hpxc_thread_create(&thread, NULL, hello_thread, n); 
 	int *r;
-	hpxc_thread_join(&thread,(void **)&r);
+	hpxc_thread_join(thread,(void **)&r);
 	printf("r=%d\n",*r);
 	free(r);
 }

@@ -19,7 +19,7 @@ int main(int argc, char** argv)
     hpxc_thread_t thread;
     hpxc_thread_create(&thread, NULL, hello_thread, NULL); 
 
-    hpxc_thread_join(&thread, NULL);
+    hpxc_thread_join(thread, NULL);
 
     printf(" world\n");
 

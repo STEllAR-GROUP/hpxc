@@ -47,7 +47,7 @@ int hpx_main(int argc, char* argv[])
         typedef boost::function<void(function_type)> deleter_type;
 
         // Bind the hpxc_user_main symbol dynamically and invoke it.
-        boost::plugin::dll this_exe("create_thread");//get_executable_filename());
+        boost::plugin::dll this_exe(get_executable_filename());
         std::pair<function_type, deleter_type> p = 
             this_exe.get<function_type, deleter_type>("hpxc_user_main");
 
@@ -60,7 +60,7 @@ int hpx_main(int argc, char* argv[])
 
         hpxc_thread_t main_id = { id };
 
-        hpxc_thread_join(&main_id, NULL); 
+        hpxc_thread_join(main_id, NULL); 
     }
 
     // IMPLEMENT: Return code needs to be propagated somehow.

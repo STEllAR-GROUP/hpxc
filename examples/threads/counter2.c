@@ -8,8 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/time.h>
 
-#define NTHREADS 1000000
+#define NTHREADS 32000
 
 int counter = 0;
 
@@ -39,6 +40,14 @@ void *finish(void *p) {
 void my_launch()
 {
 	int i;
+	struct timeval tv;
+	struct timezone tz;
+	double t1,t2;
+
+	timerclear(&tv);
+	gettimeofday(&tv,&tz);
+	t1 = tv.tv_sec + 1.0e-6*tv.tv_usec;
+
 	hpxc_mutex_init(&mut,NULL);
 	hpxc_cond_init(&cond,NULL);
 	for(i=0;i<NTHREADS;i++)
@@ -50,13 +59,15 @@ void my_launch()
 	hpxc_thread_t fin;
 	hpxc_thread_create(&fin,NULL,finish,NULL);
 	hpxc_thread_join(fin,NULL);
-}
 
-extern void hpxc_launch(int argc,char *argv[],void (*launch)());
+	timerclear(&tv);
+	gettimeofday(&tv,&tz);
+	t2 = tv.tv_sec + 1.0e-6*tv.tv_usec;
+	printf("time in seconds=%g\n",t2-t1);
+}
 
 #undef main
 int main(int argc, char* argv[]) {
 	hpxc_launch(argc,argv,my_launch);
 	return 0;
 }
-

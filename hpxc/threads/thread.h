@@ -16,6 +16,7 @@ extern "C" {
     ///////////////////////////////////////////////////////////////////////////
     typedef struct hpxc_thread_t { void* handle; } hpxc_thread_t;
     typedef struct hpxc_mutex_t { void* handle; } hpxc_mutex_t;
+    typedef struct hpxc_cond_t { void* handle; } hpxc_cond_t;
     typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -29,11 +30,15 @@ extern "C" {
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Suspend the calling thread until the target thread terminates.
     HPXC_API_EXPORT int hpxc_thread_join(
-        hpxc_thread_t* thread_id,
+        hpxc_thread_t thread_id,
         void** value_ptr);
 
     HPXC_API_EXPORT int hpxc_thread_detach(
-        hpxc_thread_t* thread_id);
+        hpxc_thread_t thread_id);
+
+    HPXC_API_EXPORT void hpxc_launch(int argc,
+		char *argv[],
+		void (*launch_func)());
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Terminates the calling thread.
@@ -45,6 +50,11 @@ extern "C" {
     /// \note Returns the equivalent of \a hpx::threads::thread_invalid_id if
     ///       called from outside of an hpx-thread.
     HPXC_API_EXPORT hpxc_thread_t hpxc_thread_self(void);
+
+	HPXC_API_EXPORT int hpxc_cond_init(hpxc_cond_t *cond,void *unused);
+	HPXC_API_EXPORT int hpxc_cond_wait(hpxc_cond_t *cond,hpxc_mutex_t *unused);
+	HPXC_API_EXPORT int hpxc_cond_signal(hpxc_cond_t *cond);
+	HPXC_API_EXPORT int hpxc_cond_broadcast(hpxc_cond_t *cond);
 
 	HPXC_API_EXPORT int hpxc_mutex_init(hpxc_mutex_t *mut,void *unused);
 	HPXC_API_EXPORT hpxc_mutex_t hpxc_mutex_alloc();
