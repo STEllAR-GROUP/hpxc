@@ -47,6 +47,7 @@ extern "C"
         	//boost::make_shared<hpx::lcos::local::promise<void*> >();
 
 		thread_handle *th = new thread_handle;
+		th->future = th->promise.get_future();
 
         hpx::threads::thread_id_type id = 
             hpx::applier::register_thread(
@@ -54,8 +55,6 @@ extern "C"
                 HPX_STD_BIND(wrapper_function, th, thread_function, arguments), 
                 "hpxc_thread_create");
 		th->id = id;
-		//th->promise = p;
-		th->future = th->promise.get_future();
         hpxc_thread_t t = { th };
         *thread_id = t;
 
