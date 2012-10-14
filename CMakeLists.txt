@@ -39,14 +39,6 @@ link_directories(${HPX_LIBRARY_DIR})
 
 include_directories(${hpxc_SOURCE_DIR})
 
-if(NOT MSVC)  
-  hpx_include(CompilerFlags)
-
-  # Necessary on Linux because of our current strategy wrt to hpx_init
-  hpx_use_flag_if_available(-fPIC LANGUAGES C)
-  hpx_use_flag_if_available(-pie LANGUAGES C)
-endif()
-
 add_subdirectory(src)
 
 ##############################################################################
