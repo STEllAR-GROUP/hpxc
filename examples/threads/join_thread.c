@@ -23,6 +23,5 @@ int main(int argc, char** argv)
 
     printf(" world\n");
 
-    hpxc_thread_exit(NULL);
     return 0;
 }

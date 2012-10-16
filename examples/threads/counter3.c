@@ -14,7 +14,7 @@
 
 int counter = 0;
 
-hpxc_mutex_t mut;// = HPXC_MUTEX_INITIALIZER;
+hpxc_mutex_t mut;
 hpxc_cond_t cond;
 
 void* incr(void* p)
@@ -43,7 +43,6 @@ void my_launch()
 	struct timeval tv;
 	struct timezone tz;
 	double t1,t2;
-	mut = HPXC_MUTEX_INITIALIZER;
 
 	timerclear(&tv);
 	gettimeofday(&tv,&tz);
@@ -51,12 +50,16 @@ void my_launch()
 
 	hpxc_mutex_init(&mut,NULL);
 	hpxc_cond_init(&cond,NULL);
+	hpxc_thread_attr_t attr;
+	hpxc_thread_attr_init(&attr);
+	hpxc_thread_attr_setdetachstate(&attr,1);
 	for(i=0;i<NTHREADS;i++)
 	{
 		hpxc_thread_t th;
 		hpxc_thread_create(&th,NULL,incr,NULL);
 		hpxc_thread_detach(th);
 	}
+	hpxc_thread_attr_destroy(&attr);
 	hpxc_thread_t fin;
 	hpxc_thread_create(&fin,NULL,finish,NULL);
 	hpxc_thread_join(fin,NULL);

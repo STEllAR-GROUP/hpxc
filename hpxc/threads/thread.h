@@ -44,6 +44,13 @@ extern "C" {
     /// \brief Terminates the calling thread.
     HPXC_API_EXPORT void hpxc_thread_exit(void* value_ptr);
 
+	HPXC_API_EXPORT int hpxc_thread_attr_init(hpxc_thread_attr_t *attr);
+	HPXC_API_EXPORT int hpxc_thread_attr_destroy(hpxc_thread_attr_t *attr);
+	HPXC_API_EXPORT int hpxc_thread_attr_setdetachstate(
+		hpxc_thread_attr_t *attr,int detach);
+	HPXC_API_EXPORT int hpxc_thread_attr_getdetachstate(
+		hpxc_thread_attr_t *attr,int *detach);
+
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the ID of the calling thread.
     ///

@@ -10,7 +10,8 @@
 
 #include <errno.h>
 
-struct thread_handle {
+struct thread_handle
+{
 	boost::atomic<int> refc;
 	hpx::threads::thread_id_type id;
 	hpx::lcos::local::promise<void*> promise;
@@ -33,25 +34,86 @@ void wrapper_function(
 	if(r == 0) delete handle;
 }
 
+struct hpxc_thread_attr_handle
+{
+	bool detach;
+	bool remote;
+	hpx::naming::id_type gid;
+	hpxc_thread_attr_handle() : detach(false), remote(false), gid() {}
+	
+	void run_remote() {
+		remote = true;
+		hpx::find_here();
+	}
+	virtual ~hpxc_thread_attr_handle() {}
+};
+
 extern "C"
 {
     ///////////////////////////////////////////////////////////////////////////
     // IMPLEMENT: attributes. 
+	int hpxc_thread_attr_init(hpxc_thread_attr_t *attr)
+	{
+		hpxc_thread_attr_handle *handle= new hpxc_thread_attr_handle();
+		if(handle == NULL)
+			return -1;
+		attr->handle = handle;
+		return 0;
+	}
+	int hpxc_thread_attr_destroy(hpxc_thread_attr_t *attr)
+	{
+		if(attr->handle==NULL)
+			return -1;
+		hpxc_thread_attr_handle *handle =
+			reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
+		delete handle;
+		attr->handle = NULL;
+		return 0;
+	}
+	int hpxc_thread_attr_setdetachstate(hpxc_thread_attr_t *attr,int detach)
+	{
+		if(attr->handle==NULL)
+			return -1;
+		hpxc_thread_attr_handle *handle =
+			reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
+		handle->detach = detach ? true : false;
+		return 0;
+	}
+	int hpxc_thread_attr_getdetachstate(hpxc_thread_attr_t *attr,int *detach)
+	{
+		if(attr->handle==NULL)
+			return -1;
+		hpxc_thread_attr_handle *handle =
+			reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
+		if(handle->detach)
+			*detach = 1;
+		else
+			*detach = 0;
+		return 0;
+	}
+
     int hpxc_thread_create(
         hpxc_thread_t* thread_id, 
-        hpxc_thread_attr_t const* attributes,
+        hpxc_thread_attr_t const* attr,
         void* (*thread_function)(void*), 
         void* arguments)
     {
-    	//boost::shared_ptr<hpx::lcos::local::promise<void*> > p =
-        	//boost::make_shared<hpx::lcos::local::promise<void*> >();
-
 		thread_handle *th = new thread_handle;
 		th->future = th->promise.get_future();
 
+		if(attr != NULL) {
+			hpxc_thread_attr_handle *handle =
+				reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
+			if(handle->detach) {
+				hpx::applier::register_thread(
+						HPX_STD_BIND(thread_function, arguments), 
+						"hpxc_thread_create");
+				return 0;
+			}
+		}
+
         hpx::threads::thread_id_type id = 
             hpx::applier::register_thread(
-                //HPX_STD_BIND(thread_function, arguments), 
                 HPX_STD_BIND(wrapper_function, th, thread_function, arguments), 
                 "hpxc_thread_create");
 		th->id = id;
@@ -68,26 +130,27 @@ inline void resume_thread(hpx::threads::thread_id_type id, void** value_ptr)
     hpx::threads::set_thread_state(id, hpx::threads::pending);
 }
 
-struct cond_internal {
+struct cond_handle
+{
    	std::vector<
 		boost::shared_ptr<
 			hpx::lcos::local::promise<int>
 		>
 	> waiting;
-	cond_internal() : waiting() {}
+	cond_handle() : waiting() {}
 };
 
 extern "C"
 {
 	int hpxc_cond_init(hpxc_cond_t *cond,void *unused)
 	{
-		cond->handle = new cond_internal();
+		cond->handle = new cond_handle();
 		return 0;
 	}
 	int hpxc_cond_wait(hpxc_cond_t *cond,hpxc_mutex_t *mutex)
 	{
-    	cond_internal *cond_in =
-			reinterpret_cast<cond_internal *>(cond->handle);
+    	cond_handle *cond_in =
+			reinterpret_cast<cond_handle *>(cond->handle);
 		hpx::lcos::local::spinlock *lock =
 			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
 
@@ -102,8 +165,8 @@ extern "C"
 	}
 	int hpxc_cond_broadcast(hpxc_cond_t *cond)
 	{
-    	cond_internal *cond_in =
-			reinterpret_cast<cond_internal *>(cond->handle);
+    	cond_handle *cond_in =
+			reinterpret_cast<cond_handle *>(cond->handle);
 		for(auto i=cond_in->waiting.begin(); i != cond_in->waiting.end();++i)
 		{
 			(*i)->set_value(0);
@@ -113,8 +176,8 @@ extern "C"
 	}
 	int hpxc_cond_signal(hpxc_cond_t *cond)
 	{
-    	cond_internal *cond_in =
-			reinterpret_cast<cond_internal *>(cond->handle);
+    	cond_handle *cond_in =
+			reinterpret_cast<cond_handle *>(cond->handle);
 		if(cond_in->waiting.size() > 0)
 		{
 			cond_in->waiting.erase(
@@ -130,9 +193,7 @@ extern "C"
 	}
 	hpxc_mutex_t hpxc_mutex_alloc()
 	{
-		hpxc_mutex_t mut;
-		mut.handle = new hpx::lcos::local::spinlock();
-		return mut;
+		return { new hpx::lcos::local::spinlock() };
 	}
 	void hpxc_mutex_destroy(hpxc_mutex_t *mutex)
 	{

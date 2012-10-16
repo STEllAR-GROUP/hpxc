@@ -8,6 +8,7 @@ set(example_programs
     join_thread
 	counter
 	counter2
+	counter3
    )
 
 add_definitions("-DHPXC_APPLICATION_EXPORTS")

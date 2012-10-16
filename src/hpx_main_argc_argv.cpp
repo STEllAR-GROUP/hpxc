@@ -51,19 +51,9 @@ int hpx_main(int argc, char* argv[])
         std::pair<function_type, deleter_type> p = 
             this_exe.get<function_type, deleter_type>("hpxc_user_main");
 
-        // Invoke hpxc_user_main.
-        hpx::threads::thread_id_type id = 
-            hpx::applier::register_thread(
-				//HPX_STD_BIND(user_main));
-                HPX_STD_BIND(*p.first, argc, argv), 
-                "hpxc_user_main");
-
-        hpxc_thread_t main_id = { id };
-
-        hpxc_thread_join(main_id, NULL); 
+		HPX_STD_BIND(*p.first,argc,argv)();
     }
 
-    // IMPLEMENT: Return code needs to be propagated somehow.
     return hpx::finalize();
 }
 
