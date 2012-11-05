@@ -14,7 +14,7 @@ void* hello_thread(void* p)
     return NULL; 
 }
 
-int main(int argc, char** argv)
+int hpxc_main(int argc, char** argv)
 {
     hpxc_thread_t thread;
     hpxc_thread_create(&thread, NULL, hello_thread, NULL); 

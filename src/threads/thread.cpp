@@ -9,29 +9,80 @@
 #include <boost/atomic.hpp>
 
 #include <errno.h>
+#undef NDEBUG
+
+const int MAGIC = 0xCAFEBABE;
 
 struct thread_handle
 {
-	boost::atomic<int> refc;
 	hpx::threads::thread_id_type id;
+    int magic;
+	boost::atomic<int> refc;
 	hpx::lcos::local::promise<void*> promise;
 	hpx::lcos::future<void*> future;
+    int cancel_flags;
 
-	thread_handle() : refc(2) {}
+	thread_handle() : id(), magic(MAGIC), refc(2),
+        promise(), future(promise.get_future()), cancel_flags(HPXC_THREAD_CANCEL_ENABLE) {}
 };
 
+thread_handle *get_thread_data(hpx::threads::thread_id_type id)
+{
+    thread_handle *thandle =
+        reinterpret_cast<thread_handle*>(
+            hpx::threads::get_thread_data(id));
+    assert(thandle);
+    assert(thandle->magic == MAGIC);
+    return thandle;
+}
+
+thread_handle *get_thread_data(hpxc_thread_t thread)
+{
+    /*
+    if(thread.handle == NULL)
+        return NULL;
+    hpx::threads::thread_id_type id =
+        reinterpret_cast<hpx::threads::thread_id_type>(
+            thread.handle);
+    return get_thread_data(id);
+    */
+    thread_handle *thandle = reinterpret_cast<thread_handle*>(thread.handle);
+    return thandle;
+}
+
+void free_data(hpxc_thread_t thread)
+{
+    if(thread.handle == NULL)
+        return;
+    thread_handle *thandle =
+        reinterpret_cast<thread_handle*>(thread.handle);
+    assert(thandle->magic == MAGIC);
+    hpx::threads::set_thread_data(thandle->id,(size_t)0);
+    delete thandle;
+    thread.handle = NULL;
+}
+
 void wrapper_function(
-	thread_handle *handle,
+	thread_handle *thandle,
 	void *(*thread_function)(void*),
 	void *arguments)
 {
+    assert(thandle);
+    assert(thandle->magic == MAGIC);
+    hpx::threads::thread_self* self = hpx::threads::get_self_ptr();
+    thandle->id = self->get_thread_id();
+    self->set_thread_data(
+        reinterpret_cast<size_t>(thandle));
+    //assert(get_thread_data(thandle->id) == thandle);
 	try {
-		handle->promise.set_value(thread_function(arguments));
+		thandle->promise.set_value(thread_function(arguments));
 	} catch(void *ret) {
-		handle->promise.set_value(ret);
+		thandle->promise.set_value(ret);
 	}
-	int r = --handle->refc;//__sync_fetch_and_add(&handle->refc,-1);
-	if(r == 0) delete handle;
+	int r = --thandle->refc;
+	if(r == 0) { 
+        delete thandle;
+    }
 }
 
 struct hpxc_thread_attr_handle
@@ -56,14 +107,14 @@ extern "C"
 	{
 		hpxc_thread_attr_handle *handle= new hpxc_thread_attr_handle();
 		if(handle == NULL)
-			return -1;
+			return ENOMEM;
 		attr->handle = handle;
 		return 0;
 	}
 	int hpxc_thread_attr_destroy(hpxc_thread_attr_t *attr)
 	{
 		if(attr->handle==NULL)
-			return -1;
+			return EINVAL;
 		hpxc_thread_attr_handle *handle =
 			reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
 		delete handle;
@@ -73,7 +124,7 @@ extern "C"
 	int hpxc_thread_attr_setdetachstate(hpxc_thread_attr_t *attr,int detach)
 	{
 		if(attr->handle==NULL)
-			return -1;
+			return EINVAL;
 		hpxc_thread_attr_handle *handle =
 			reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
 		handle->detach = detach ? true : false;
@@ -82,7 +133,7 @@ extern "C"
 	int hpxc_thread_attr_getdetachstate(hpxc_thread_attr_t *attr,int *detach)
 	{
 		if(attr->handle==NULL)
-			return -1;
+			return EINVAL;
 		hpxc_thread_attr_handle *handle =
 			reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
 		if(handle->detach)
@@ -93,18 +144,19 @@ extern "C"
 	}
 
     int hpxc_thread_create(
-        hpxc_thread_t* thread_id, 
+        hpxc_thread_t* thread, 
         hpxc_thread_attr_t const* attr,
         void* (*thread_function)(void*), 
         void* arguments)
     {
-		thread_handle *th = new thread_handle;
-		th->future = th->promise.get_future();
+		thread_handle *thandle = new thread_handle;
 
 		if(attr != NULL) {
+            assert(0);
 			hpxc_thread_attr_handle *handle =
 				reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
 			if(handle->detach) {
+                thandle->refc--;
 				hpx::applier::register_thread(
 						HPX_STD_BIND(thread_function, arguments), 
 						"hpxc_thread_create");
@@ -114,11 +166,10 @@ extern "C"
 
         hpx::threads::thread_id_type id = 
             hpx::applier::register_thread(
-                HPX_STD_BIND(wrapper_function, th, thread_function, arguments), 
+                HPX_STD_BIND(wrapper_function, thandle, thread_function, arguments), 
                 "hpxc_thread_create");
-		th->id = id;
-        hpxc_thread_t t = { th };
-        *thread_id = t;
+        thandle->id = id;
+        thread->handle = reinterpret_cast<void*>(thandle);
 
         return 0;
     }
@@ -205,7 +256,7 @@ extern "C"
 	int hpxc_mutex_lock(hpxc_mutex_t *mutex)
 	{
 		if(mutex->handle == 0)
-			return -1;
+			return EINVAL;
 		hpx::lcos::local::spinlock *lock =
 			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
 		lock->lock();
@@ -214,7 +265,7 @@ extern "C"
 	int hpxc_mutex_unlock(hpxc_mutex_t *mutex)
 	{
 		if(mutex->handle == 0)
-			return -1;
+			return EINVAL;
 		hpx::lcos::local::spinlock *lock =
 			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
 		lock->unlock();
@@ -227,42 +278,90 @@ extern "C"
 		return lock->try_lock();
 	}
 
+    int hpxc_thread_testcancel()
+    {
+        hpxc_thread_t thread = hpxc_thread_self();
+
+        thread_handle *thandle = reinterpret_cast<thread_handle*>(thread.handle);
+        if(thandle==NULL)
+            return EINVAL;
+
+        int state = HPXC_THREAD_CANCEL_ENABLE|HPXC_THREAD_CANCELED;
+        if((thandle->cancel_flags & state) == state) {
+            throw (void *)NULL;
+        }
+        printf("testcancel=%x\n",thandle->cancel_flags);
+        return 0;
+    }
+
+    int hpxc_thread_cancel(hpxc_thread_t thread)
+    {
+        thread_handle *thandle = reinterpret_cast<thread_handle*>(thread.handle);
+        if(thandle == NULL)
+            return ESRCH;
+        if((thandle->cancel_flags & HPXC_THREAD_CANCEL_ENABLE) == HPXC_THREAD_CANCEL_ENABLE) {
+            thandle->cancel_flags |= HPXC_THREAD_CANCELED;
+            printf("cancel=%x\n",thandle->cancel_flags);
+            return 0;
+        } else {
+            return EINVAL;
+        }
+    }
+    int hpxc_thread_setcancelstate(int state,int *old_state)
+    {
+        hpxc_thread_t thread = hpxc_thread_self();
+
+        thread_handle *thandle = reinterpret_cast<thread_handle*>(thread.handle);
+        if(thandle==NULL)
+            return EINVAL;
+
+        *old_state = (thandle->cancel_flags & HPXC_THREAD_CANCELED);
+        if(state) {
+            thandle->cancel_flags |=  HPXC_THREAD_CANCELED;
+        } else {
+            thandle->cancel_flags &= ~HPXC_THREAD_CANCELED;
+        }
+        return 0;
+    }
+    int hpxc_thread_setcanceltype(int state,int *old_state)
+    {
+        *old_state = HPXC_THREAD_CANCEL_DEFERRED;
+        if(state != HPXC_THREAD_CANCEL_DEFERRED)
+            return EINVAL;
+        return 0;
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // IMPLEMENT: value_ptr.
     int hpxc_thread_join(
-        hpxc_thread_t thread_id,
+        hpxc_thread_t thread,
         void** value_ptr)
     {
-		if(thread_id.handle == NULL)
-			return -1;
-
-        thread_handle *handle
-            = reinterpret_cast<thread_handle*>(thread_id.handle);
-		if(value_ptr != 0)
-			*value_ptr = handle->future.get();
+        thread_handle *thandle = reinterpret_cast<thread_handle*>(thread.handle);
+        assert(thandle->magic == MAGIC);
+        if(thandle==NULL)
+            return ESRCH;
+		if(value_ptr != NULL)
+			*value_ptr = thandle->future.get();
 		else
-			handle->future.get();
-		int r = --handle->refc;//__sync_fetch_and_add(&handle->refc,-1);
+			thandle->future.get();
+		int r = --thandle->refc;
 		if(r == 0) {
-			delete handle;
-			thread_id.handle = NULL;
+            free_data(thread);
 		}
 		return 0;
     }
 
     int hpxc_thread_detach(
-        hpxc_thread_t thread_id)
+        hpxc_thread_t thread)
     {
-		if(thread_id.handle == 0)
-			return -1;
-
-        thread_handle *handle =
-            reinterpret_cast<thread_handle*>(thread_id.handle);
-		//handle->future.cancel();
-		int r = --handle->refc;//__sync_fetch_and_add(&handle->refc,-1);
+        thread_handle *thandle = 
+            reinterpret_cast<thread_handle*>(thread.handle);
+        if(thandle==NULL)
+            return ESRCH;
+		int r = --thandle->refc;
 		if(r == 0) {
-			delete handle;
-			thread_id.handle = NULL;
+            free_data(thread);
 		}
 		return 0;
     }
@@ -282,11 +381,13 @@ extern "C"
 
         if (self)
         {
-            hpxc_thread_t t = { self->get_thread_id() };
+            hpxc_thread_t t = {
+                reinterpret_cast<void*>(self->get_thread_data())
+            };
             return t;
         }
 
-        hpxc_thread_t t = { hpx::threads::invalid_thread_id };
+        hpxc_thread_t t = { NULL };
         return t;         
     }
 	void show_thread()

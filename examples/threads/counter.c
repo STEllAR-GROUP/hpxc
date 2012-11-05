@@ -22,7 +22,7 @@ void* incr(void* p)
 }
 
 #define NTHREADS 100000
-void my_launch()
+void my_init()
 {
 	int i;
 	hpxc_mutex_init(&mut,0);
@@ -38,11 +38,8 @@ void my_launch()
 	printf("counter=%d\n",counter);
 }
 
-extern void hpxc_launch(int argc,char *argv[],void (*launch)());
-
-#undef main
 int main(int argc, char* argv[]) {
-	hpxc_launch(argc,argv,my_launch);
+	hpxc_init(my_init,argc,argv);
 	return 0;
 }
 

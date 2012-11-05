@@ -9,6 +9,8 @@ set(example_programs
 	counter
 	counter2
 	counter3
+    self
+    cancel
    )
 
 add_definitions("-DHPXC_APPLICATION_EXPORTS")

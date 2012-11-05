@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
     ///////////////////////////////////////////////////////////////////////////
-    typedef struct hpxc_thread_t { void* handle; } hpxc_thread_t;
+    typedef struct hpxc_thread_t { void *handle; } hpxc_thread_t;
     typedef struct hpxc_mutex_t { void* handle; } hpxc_mutex_t;
     typedef struct hpxc_cond_t { void* handle; } hpxc_cond_t;
     typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
@@ -36,9 +36,11 @@ extern "C" {
     HPXC_API_EXPORT int hpxc_thread_detach(
         hpxc_thread_t thread_id);
 
-    HPXC_API_EXPORT void hpxc_launch(int argc,
-		char *argv[],
-		void (*launch_func)());
+    HPXC_API_EXPORT void hpxc_init(
+		void (*init_func)(),
+        int argc,
+		char *argv[]
+        );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Terminates the calling thread.
@@ -69,6 +71,17 @@ extern "C" {
 	HPXC_API_EXPORT int hpxc_mutex_unlock(hpxc_mutex_t *mut);
 	HPXC_API_EXPORT int hpxc_mutex_trylock(hpxc_mutex_t *mut);
 	HPXC_API_EXPORT void hpxc_mutex_destroy(hpxc_mutex_t *mut);
+    HPXC_API_EXPORT int hpxc_thread_testcancel();
+    HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
+    enum {
+        HPXC_THREAD_CANCELED=1,
+        HPXC_THREAD_CANCEL_ENABLE=2,
+        HPXC_THREAD_CANCEL_DISABLE=0,
+        HPXC_THREAD_CANCEL_DEFERRED=0,
+        HPXC_THREAD_CANCEL_ASYNCHRONOUS=8
+    };
+    HPXC_API_EXPORT int hpxc_thread_setcancelstate(int state,int *old_state);
+    HPXC_API_EXPORT int hpxc_thread_setcanceltype(int state,int *old_state);
 #define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 
 #if defined(__cplusplus)

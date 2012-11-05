@@ -37,7 +37,7 @@ void *finish(void *p) {
 	return NULL;
 }
 
-void my_launch()
+void my_init()
 {
 	int i;
 	struct timeval tv;
@@ -67,8 +67,7 @@ void my_launch()
 	printf("time in seconds=%g\n",t2-t1);
 }
 
-#undef main
 int main(int argc, char* argv[]) {
-	hpxc_launch(argc,argv,my_launch);
+	hpxc_init(my_init,argc,argv);
 	return 0;
 }

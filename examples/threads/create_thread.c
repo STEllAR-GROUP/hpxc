@@ -20,7 +20,7 @@ void* hello_thread(void* p)
     return r;
 }
 
-void my_launch()
+void my_init()
 {
     hpxc_thread_t thread;
 	int *n = (int *)malloc(sizeof(int));
@@ -32,10 +32,7 @@ void my_launch()
 	free(r);
 }
 
-extern void hpxc_launch(int argc,char *argv[],void (*launch)());
-
-#undef main
 int main(int argc, char* argv[]) {
-	hpxc_launch(argc,argv,my_launch);
+	hpxc_init(my_init,argc,argv);
 	return 0;
 }

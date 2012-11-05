@@ -9,16 +9,11 @@
 #include <hpxc/config/export_definitions.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-#if defined(HPXC_APPLICATION_EXPORTS)
-#  define main hpxc_user_main
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-    HPXC_APPLICATION_EXPORT int hpxc_user_main();
+    HPXC_APPLICATION_EXPORT int hpxc_main();
      
 #if defined(__cplusplus)
 }
