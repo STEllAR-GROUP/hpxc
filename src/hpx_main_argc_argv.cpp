@@ -9,7 +9,7 @@
 #include <hpx/hpx_init.hpp>
 
 #include <boost/function.hpp>
-#include <boost/plugin.hpp>
+#include <hpx/util/plugin.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 std::string get_executable_filename();
@@ -47,7 +47,7 @@ int hpx_main(int argc, char* argv[])
         typedef boost::function<void(function_type)> deleter_type;
 
         // Bind the hpxc_main symbol dynamically and invoke it.
-        boost::plugin::dll this_exe(get_executable_filename());
+        hpx::util::plugin::dll this_exe(get_executable_filename());
         std::pair<function_type, deleter_type> p = 
             this_exe.get<function_type, deleter_type>("hpxc_main");
 
