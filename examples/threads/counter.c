@@ -18,7 +18,7 @@ void* incr(void* p)
 	hpxc_mutex_lock(&mut);
 	counter++;
 	hpxc_mutex_unlock(&mut);
-	return 0;
+	return NULL;
 }
 
 #define NTHREADS 100000
@@ -35,11 +35,10 @@ void my_init()
 	{
 		hpxc_thread_join(threads[i],0);
 	}
-	printf("counter=%d\n",counter);
+	printf("finished: counter=%d\n",counter);
 }
 
 int main(int argc, char* argv[]) {
 	hpxc_init(my_init,argc,argv);
 	return 0;
 }
-

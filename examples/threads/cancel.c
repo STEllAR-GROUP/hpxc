@@ -9,10 +9,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-int counter = 0;
-
-hpxc_mutex_t mut;
-
 void* until_I_die(void* p)
 {
     while(1)
@@ -27,6 +23,7 @@ void my_init()
 	hpxc_thread_create(&once,NULL,until_I_die,NULL);
     hpxc_thread_cancel(once);
 	hpxc_thread_join(once,NULL);
+    printf("Cancelation was successful.\n");
 }
 
 int main(int argc, char* argv[]) {

@@ -70,6 +70,8 @@ void wrapper_function(
     assert(thandle);
     assert(thandle->magic == MAGIC);
     hpx::threads::thread_self* self = hpx::threads::get_self_ptr();
+    hpx::threads::set_thread_interruption_enabled(
+        self->get_thread_id(),true);
     thandle->id = self->get_thread_id();
     self->set_thread_data(
         reinterpret_cast<size_t>(thandle));
@@ -78,7 +80,14 @@ void wrapper_function(
 		thandle->promise.set_value(thread_function(arguments));
 	} catch(void *ret) {
 		thandle->promise.set_value(ret);
-	}
+    // Handle cancelation
+    } catch(hpx::exception e) {
+        if(e.get_error_code().value() != hpx::thread_interrupted) {
+            // rethrow
+            throw;
+        }
+        thandle->promise.set_value(NULL);
+    }
 	int r = --thandle->refc;
 	if(r == 0) { 
         delete thandle;
@@ -170,6 +179,8 @@ extern "C"
                 "hpxc_thread_create");
         thandle->id = id;
         thread->handle = reinterpret_cast<void*>(thandle);
+        hpx::threads::set_thread_interruption_enabled(
+            thandle->id,true);
 
         return 0;
     }
@@ -286,12 +297,8 @@ extern "C"
         if(thandle==NULL)
             return EINVAL;
 
-        int state = HPXC_THREAD_CANCEL_ENABLE|HPXC_THREAD_CANCELED;
-        if((thandle->cancel_flags & state) == state) {
-            throw (void *)NULL;
-        }
-        printf("testcancel=%x\n",thandle->cancel_flags);
-        return 0;
+        hpx::this_thread::interruption_point();
+        return EINVAL;
     }
 
     int hpxc_thread_cancel(hpxc_thread_t thread)
@@ -299,12 +306,12 @@ extern "C"
         thread_handle *thandle = reinterpret_cast<thread_handle*>(thread.handle);
         if(thandle == NULL)
             return ESRCH;
-        if((thandle->cancel_flags & HPXC_THREAD_CANCEL_ENABLE) == HPXC_THREAD_CANCEL_ENABLE) {
-            thandle->cancel_flags |= HPXC_THREAD_CANCELED;
-            printf("cancel=%x\n",thandle->cancel_flags);
-            return 0;
-        } else {
+        hpx::error_code ec;
+        hpx::threads::interrupt_thread(thandle->id,ec);
+        if(ec) {
             return EINVAL;
+        } else {
+            return 0;
         }
     }
     int hpxc_thread_setcancelstate(int state,int *old_state)
@@ -316,10 +323,13 @@ extern "C"
             return EINVAL;
 
         *old_state = (thandle->cancel_flags & HPXC_THREAD_CANCELED);
-        if(state) {
+        if(state == HPXC_THREAD_CANCELED) {
             thandle->cancel_flags |=  HPXC_THREAD_CANCELED;
+            hpx::threads::interrupt_thread(
+                thandle->id);
         } else {
             thandle->cancel_flags &= ~HPXC_THREAD_CANCELED;
+            // TODO: not yet supported by HPX
         }
         return 0;
     }
