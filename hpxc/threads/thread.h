@@ -1,5 +1,6 @@
 //  Copyright (c) 2007-2012 Hartmut Kaiser
 //  Copyright (c) 2011-2012 Bryce Adelstein-Lelbach
+//  Copyright (c) 2012-2013 Alexander Duchene
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -83,6 +84,12 @@ extern "C" {
     };
     HPXC_API_EXPORT int hpxc_thread_setcancelstate(int state,int *old_state);
     HPXC_API_EXPORT int hpxc_thread_setcanceltype(int state,int *old_state);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Creates key for thread local storage usable by all threads
+    HPXC_API_EXPORT int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*));
+
+
 #define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 
 #if defined(__cplusplus)

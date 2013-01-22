@@ -1,5 +1,6 @@
 //  Copyright (c) 2007-2012 Hartmut Kaiser
 //  Copyright (c) 2011-2012 Bryce Adelstein-lelbach
+//  Copyright (c) 2012-2013 Alexander Duchene
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -14,8 +15,10 @@
 
 const int MAGIC = 0xCAFEBABE;
 
+//Possibly should encapsulate
 typedef void (*destructor_function_t)(void*);
 std::map<hpxc_key_t, destructor_function_t> active_tls_keys;
+boost::atomic<long> next_key(0);
 
 struct thread_handle
 {
@@ -414,4 +417,12 @@ extern "C"
             std::cout << "self=" << self->get_thread_id() << std::endl;
         }
 	}
+
+    int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*)){
+        long this_key=next_key++;
+        *key=this_key;
+        active_tls_keys[this_key]=destructor;
+        return 0;
+    }
+
 }
