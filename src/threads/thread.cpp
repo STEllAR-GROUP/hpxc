@@ -9,9 +9,13 @@
 #include <boost/atomic.hpp>
 
 #include <errno.h>
+#include <map>
 #undef NDEBUG
 
 const int MAGIC = 0xCAFEBABE;
+
+typedef void (*destructor_function_t)(void*);
+std::map<hpxc_key_t, destructor_function_t> active_tls_keys;
 
 struct thread_handle
 {
@@ -21,6 +25,7 @@ struct thread_handle
 	hpx::lcos::local::promise<void*> promise;
 	hpx::lcos::future<void*> future;
     int cancel_flags;
+    std::map<hpxc_key_t, void*> thread_local_storage;
 
 	thread_handle() : id(), magic(MAGIC), refc(2),
         promise(), future(promise.get_future()), cancel_flags(HPXC_THREAD_CANCEL_ENABLE) {}
