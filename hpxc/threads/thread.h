@@ -90,6 +90,11 @@ extern "C" {
     HPXC_API_EXPORT int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*));
 
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Deletes a key
+    HPXC_API_EXPORT int hpxc_key_delete(hpxc_key_t key);
+
+
 #define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 
 #if defined(__cplusplus)

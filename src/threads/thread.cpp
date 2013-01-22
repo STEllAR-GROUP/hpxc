@@ -425,4 +425,9 @@ extern "C"
         return 0;
     }
 
+    int hpxc_key_delete(hpxc_key_t key){
+        active_tls_keys[key]=NULL;
+        return 0;
+    }
+
 }
