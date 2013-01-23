@@ -11,14 +11,18 @@
 
 #include <errno.h>
 #include <map>
+#include <list>
 #undef NDEBUG
 
 const int MAGIC = 0xCAFEBABE;
 
 //Possibly should encapsulate
-typedef void (*destructor_function_t)(void*);
-std::map<hpxc_key_t, destructor_function_t> active_tls_keys;
-boost::atomic<long> next_key(0);
+struct tls_key{
+    void (*destructor_function)(void*);
+
+    tls_key(void (*destructor)(void*)):destructor_function(destructor){}
+};
+std::list<tls_key> active_tls_keys;
 
 struct thread_handle
 {
@@ -28,7 +32,7 @@ struct thread_handle
 	hpx::lcos::local::promise<void*> promise;
 	hpx::lcos::future<void*> future;
     int cancel_flags;
-    std::map<hpxc_key_t, void*> thread_local_storage;
+    std::map<tls_key*, void*> thread_local_storage;
 
 	thread_handle() : id(), magic(MAGIC), refc(2),
         promise(), future(promise.get_future()), cancel_flags(HPXC_THREAD_CANCEL_ENABLE) {}
@@ -419,14 +423,13 @@ extern "C"
 	}
 
     int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*)){
-        long this_key=next_key++;
-        *key=this_key;
-        active_tls_keys[this_key]=destructor;
+        active_tls_keys.push_front(tls_key(destructor));
+        key->handle=&(*(active_tls_keys.begin()));
         return 0;
     }
 
     int hpxc_key_delete(hpxc_key_t key){
-        active_tls_keys[key]=NULL;
+        ((tls_key*)(key.handle))->destructor_function=NULL;
         return 0;
     }
 

@@ -19,7 +19,7 @@ extern "C" {
     typedef struct hpxc_mutex_t { void* handle; } hpxc_mutex_t;
     typedef struct hpxc_cond_t { void* handle; } hpxc_cond_t;
     typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
-    typedef long hpxc_key_t;
+    typedef struct hpxc_key_t {void* handle;} hpxc_key_t;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Creates a new thread of execution.
