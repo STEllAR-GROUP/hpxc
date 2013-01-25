@@ -11,6 +11,7 @@ set(example_programs
 	counter3
     self
     cancel
+    thread_local_storage
    )
 
 add_definitions("-DHPXC_APPLICATION_EXPORTS")

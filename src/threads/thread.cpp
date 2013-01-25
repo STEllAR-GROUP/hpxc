@@ -32,7 +32,7 @@ struct thread_handle
 	hpx::lcos::local::promise<void*> promise;
 	hpx::lcos::future<void*> future;
     int cancel_flags;
-    std::map<tls_key*, void*> thread_local_storage;
+    std::map<void*,const void*> thread_local_storage;
 
 	thread_handle() : id(), magic(MAGIC), refc(2),
         promise(), future(promise.get_future()), cancel_flags(HPXC_THREAD_CANCEL_ENABLE) {}
@@ -423,14 +423,28 @@ extern "C"
 	}
 
     int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*)){
-        active_tls_keys.push_front(tls_key(destructor));
-        key->handle=&(*(active_tls_keys.begin()));
+        //active_tls_keys.push_front(tls_key(destructor));
+        //key->handle=&(*(active_tls_keys.begin()));
         return 0;
     }
 
     int hpxc_key_delete(hpxc_key_t key){
-        ((tls_key*)(key.handle))->destructor_function=NULL;
+        //set the function pointed associated with the key to null
+        //((tls_key*)(key.handle))->destructor_function=NULL;
         return 0;
     }
+
+    int hpxc_setspecific(hpxc_key_t key, const void* value){
+        //thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        //self->thread_local_storage[key.handle]=value;
+        return 0;
+    }
+
+    void* hpxc_getspecific(hpxc_key_t key){
+        //thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        //return const_cast<void*>(self->thread_local_storage[key.handle]);
+        return 0;
+    }
+
 
 }

@@ -87,13 +87,20 @@ extern "C" {
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Creates key for thread local storage usable by all threads
-    HPXC_API_EXPORT int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*));
+    //HPXC_API_EXPORT int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*));
 
+
+    ///////////////////////////////////////////////////////////////////////////:
+    /// \brief Deletes a key
+    //HPXC_API_EXPORT int hpxc_key_delete(hpxc_key_t key);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Deletes a key
-    HPXC_API_EXPORT int hpxc_key_delete(hpxc_key_t key);
+    /// \brief Associates a value with a key
+    //HPXC_API_EXPORT int hpxc_setspecific(hpxc_key_t key, const void *value);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Associates a value with a key
+    //HPXC_API_EXPORT void* hpxc_getspecific(hpxc_key_t key);
 
 #define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 
