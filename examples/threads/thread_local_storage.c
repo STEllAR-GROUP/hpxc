@@ -4,7 +4,7 @@
 
 hpxc_key_t key;
 hpxc_mutex_t counter_lock;
-int counter=0;
+int counter;
 
 hpxc_mutex_t io_lock;
 
@@ -37,6 +37,7 @@ void* uses_key(void* inputs){
 }
 
 int main(){
+    counter=0;
     counter_lock=HPXC_MUTEX_INITIALIZER;
     io_lock=HPXC_MUTEX_INITIALIZER;
 
