@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-hpxc_mutex_t counter_lock;
-int counter;
-
 hpxc_mutex_t io_lock;
 
 void* creates_key(void* inputs){
@@ -12,9 +9,7 @@ void* creates_key(void* inputs){
 }
 
 void* uses_key(void* inputs){
-    hpxc_mutex_lock(&counter_lock);
-    int num=counter++;
-    hpxc_mutex_unlock(&counter_lock);
+    int num=0;
 
     double some_work=1;
     int spin;
@@ -25,15 +20,13 @@ void* uses_key(void* inputs){
     int result=num;
     assert(result==num);
 
-    hpxc_mutex_lock(&io_lock);
+    //hpxc_mutex_lock(&io_lock);
     printf("Expected %d, got %d\n",num,result);
-    hpxc_mutex_unlock(&io_lock);
+    //hpxc_mutex_unlock(&io_lock);
     return NULL;
 }
 
 void my_init(){
-    counter=9;
-    counter_lock=HPXC_MUTEX_INITIALIZER;
     io_lock=HPXC_MUTEX_INITIALIZER;
 
     hpxc_thread_t threads[1000];
