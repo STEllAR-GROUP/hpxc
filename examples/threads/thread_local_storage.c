@@ -9,25 +9,24 @@ int counter;
 hpxc_mutex_t io_lock;
 
 void* creates_key(void* inputs){
-    //int ret=hpxc_key_create(&key,NULL);
+    int ret=hpxc_key_create(&key,NULL);
     return NULL;
 }
 
 void* uses_key(void* inputs){
-    //assert(hpxc_getspecific(key)==NULL);
+    assert(hpxc_getspecific(key)==NULL);
     hpxc_mutex_lock(&counter_lock);
     int num=counter++;
     hpxc_mutex_unlock(&counter_lock);
-    //hpxc_setspecific(key,(void*)num);
+    hpxc_setspecific(key,(void*)num);
 
-    int some_work=0;
+    double some_work=1;
     int spin;
     for(spin=0;spin<1000000;spin++){
-        some_work++;
+        some_work=some_work*1.1;
     }
 
-    //int result=(int)hpxc_getspecific(key);
-    int result=num; //to make up for previous line
+    int result=(int)hpxc_getspecific(key);
     assert(result==num);
 
     hpxc_mutex_lock(&io_lock);
@@ -36,8 +35,8 @@ void* uses_key(void* inputs){
     return NULL;
 }
 
-int main(){
-    counter=0;
+void my_init(){
+    counter=9;
     counter_lock=HPXC_MUTEX_INITIALIZER;
     io_lock=HPXC_MUTEX_INITIALIZER;
 
@@ -54,5 +53,9 @@ int main(){
     for(i=0;i<1000;i++){
         hpxc_thread_join(threads[i],NULL);
     }
+}
+
+int main(int argc,char* argv[]){
+    hpxc_init(my_init,argc,argv);
     return 0;
 }

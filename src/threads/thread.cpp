@@ -423,26 +423,25 @@ extern "C"
 	}
 
     int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*)){
-        //active_tls_keys.push_front(tls_key(destructor));
-        //key->handle=&(*(active_tls_keys.begin()));
+        active_tls_keys.push_front(tls_key(destructor));
+        key->handle=&(*(active_tls_keys.begin()));
         return 0;
     }
 
     int hpxc_key_delete(hpxc_key_t key){
-        //set the function pointed associated with the key to null
-        //((tls_key*)(key.handle))->destructor_function=NULL;
+        ((tls_key*)(key.handle))->destructor_function=NULL;
         return 0;
     }
 
     int hpxc_setspecific(hpxc_key_t key, const void* value){
-        //thread_handle* self=get_thread_data(hpx::threads::get_self_id());
-        //self->thread_local_storage[key.handle]=value;
+        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        self->thread_local_storage[key.handle]=value;
         return 0;
     }
 
     void* hpxc_getspecific(hpxc_key_t key){
-        //thread_handle* self=get_thread_data(hpx::threads::get_self_id());
-        //return const_cast<void*>(self->thread_local_storage[key.handle]);
+        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        return const_cast<void*>(self->thread_local_storage[key.handle]);
         return 0;
     }
 
