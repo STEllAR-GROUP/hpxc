@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-hpxc_key_t key;
 hpxc_mutex_t counter_lock;
 int counter;
 
