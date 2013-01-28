@@ -12,6 +12,7 @@ set(example_programs
     self
     cancel
     thread_local_storage
+    many_thread_test
    )
 
 add_definitions("-DHPXC_APPLICATION_EXPORTS")
