@@ -29,9 +29,7 @@ void* uses_key(void* inputs){
     int result=(int)hpxc_getspecific(key);
     assert(result==num);
 
-    hpxc_mutex_lock(&io_lock);
     printf("Expected %d, got %d\n",num,result);
-    hpxc_mutex_unlock(&io_lock);
     return NULL;
 }
 
