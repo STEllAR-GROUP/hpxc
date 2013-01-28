@@ -429,6 +429,7 @@ extern "C"
     }
 
     int hpxc_key_delete(hpxc_key_t key){
+        //Casts the hpxc_key_t to a tls_key, then sets the fp to null
         ((tls_key*)(key.handle))->destructor_function=NULL;
         return 0;
     }
