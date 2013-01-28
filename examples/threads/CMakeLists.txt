@@ -11,6 +11,7 @@ set(example_programs
 	counter3
     self
     cancel
+    many_thread_test
    )
 
 add_definitions("-DHPXC_APPLICATION_EXPORTS")
