@@ -22,7 +22,6 @@ struct tls_key{
 
     tls_key(void (*destructor)(void*)):destructor_function(destructor){}
 };
-std::list<tls_key> active_tls_keys;
 
 struct thread_handle
 {
@@ -32,7 +31,7 @@ struct thread_handle
 	hpx::lcos::local::promise<void*> promise;
 	hpx::lcos::future<void*> future;
     int cancel_flags;
-    std::map<void*,const void*> thread_local_storage;
+    std::map<tls_key*,const void*> thread_local_storage;
 
 	thread_handle() : id(), magic(MAGIC), refc(2),
         promise(), future(promise.get_future()), cancel_flags(HPXC_THREAD_CANCEL_ENABLE) {}
@@ -423,26 +422,24 @@ extern "C"
 	}
 
     int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*)){
-        active_tls_keys.push_front(tls_key(destructor));
-        key->handle=&(*(active_tls_keys.begin()));
+        key->handle=new tls_key(destructor);
         return 0;
     }
 
     int hpxc_key_delete(hpxc_key_t key){
-        //Casts the hpxc_key_t to a tls_key, then sets the fp to null
-        ((tls_key*)(key.handle))->destructor_function=NULL;
+        delete ((tls_key*)(key.handle));
         return 0;
     }
 
     int hpxc_setspecific(hpxc_key_t key, const void* value){
         thread_handle* self=get_thread_data(hpx::threads::get_self_id());
-        self->thread_local_storage[key.handle]=value;
+        self->thread_local_storage[(tls_key*)key.handle]=value;
         return 0;
     }
 
     void* hpxc_getspecific(hpxc_key_t key){
         thread_handle* self=get_thread_data(hpx::threads::get_self_id());
-        return const_cast<void*>(self->thread_local_storage[key.handle]);
+        return const_cast<void*>(self->thread_local_storage[(tls_key*)key.handle]);
         return 0;
     }
 
