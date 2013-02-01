@@ -8,8 +8,12 @@ int counter;
 
 hpxc_mutex_t io_lock;
 
+void destructor_f(void* tls_data){
+    printf("Destructor called on %d\n",tls_data);
+}
+
 void* creates_key(void* inputs){
-    int ret=hpxc_key_create(&key,NULL);
+    int ret=hpxc_key_create(&key,&destructor_f);
     return NULL;
 }
 

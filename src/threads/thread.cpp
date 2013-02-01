@@ -35,7 +35,20 @@ struct thread_handle
 
 	thread_handle() : id(), magic(MAGIC), refc(2),
         promise(), future(promise.get_future()), cancel_flags(HPXC_THREAD_CANCEL_ENABLE) {}
+
+    ~thread_handle();
 };
+
+thread_handle::~thread_handle(){
+    //Clean up tls
+    for(std::map<tls_key*,const void*>::iterator tls_iter=thread_local_storage.begin();
+            tls_iter!=thread_local_storage.end();
+            ++tls_iter){
+        if((*tls_iter).first->destructor_function){
+            ((*tls_iter).first->destructor_function)(const_cast<void*>((*tls_iter).second));
+        }
+    }
+}
 
 thread_handle *get_thread_data(hpx::threads::thread_id_type id)
 {
