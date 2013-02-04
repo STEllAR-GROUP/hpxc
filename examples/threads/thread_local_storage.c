@@ -2,14 +2,27 @@
 #include <stdio.h>
 #include <assert.h>
 
+hpxc_key_t key;
+hpxc_mutex_t counter_lock;
+int counter;
+
 hpxc_mutex_t io_lock;
 
+void destructor_f(void* tls_data){
+    printf("Destructor called on %d\n",tls_data);
+}
+
 void* creates_key(void* inputs){
+    int ret=hpxc_key_create(&key,&destructor_f);
     return NULL;
 }
 
 void* uses_key(void* inputs){
-    int num=0;
+    assert(hpxc_getspecific(key)==NULL);
+    hpxc_mutex_lock(&counter_lock);
+    int num=counter++;
+    hpxc_mutex_unlock(&counter_lock);
+    hpxc_setspecific(key,(void*)num);
 
     double some_work=1;
     int spin;
@@ -17,16 +30,16 @@ void* uses_key(void* inputs){
         some_work=some_work*1.1;
     }
 
-    int result=num;
+    int result=(int)hpxc_getspecific(key);
     assert(result==num);
 
-    //hpxc_mutex_lock(&io_lock);
     printf("Expected %d, got %d\n",num,result);
-    //hpxc_mutex_unlock(&io_lock);
     return NULL;
 }
 
 void my_init(){
+    counter=9;
+    counter_lock=HPXC_MUTEX_INITIALIZER;
     io_lock=HPXC_MUTEX_INITIALIZER;
 
     hpxc_thread_t threads[1000];

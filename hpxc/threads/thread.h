@@ -1,5 +1,6 @@
 //  Copyright (c) 2007-2012 Hartmut Kaiser
 //  Copyright (c) 2011-2012 Bryce Adelstein-Lelbach
+//  Copyright (c) 2012-2013 Alexander Duchene
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -18,6 +19,7 @@ extern "C" {
     typedef struct hpxc_mutex_t { void* handle; } hpxc_mutex_t;
     typedef struct hpxc_cond_t { void* handle; } hpxc_cond_t;
     typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
+    typedef struct hpxc_key_t {void* handle;} hpxc_key_t;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Creates a new thread of execution.
@@ -82,6 +84,24 @@ extern "C" {
     };
     HPXC_API_EXPORT int hpxc_thread_setcancelstate(int state,int *old_state);
     HPXC_API_EXPORT int hpxc_thread_setcanceltype(int state,int *old_state);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Creates key for thread local storage usable by all threads
+    //HPXC_API_EXPORT int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*));
+
+
+    ///////////////////////////////////////////////////////////////////////////:
+    /// \brief Deletes a key
+    //HPXC_API_EXPORT int hpxc_key_delete(hpxc_key_t key);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Associates a value with a key
+    //HPXC_API_EXPORT int hpxc_setspecific(hpxc_key_t key, const void *value);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Associates a value with a key
+    //HPXC_API_EXPORT void* hpxc_getspecific(hpxc_key_t key);
+
 #define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 
 #if defined(__cplusplus)

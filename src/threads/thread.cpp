@@ -1,5 +1,6 @@
 //  Copyright (c) 2007-2012 Hartmut Kaiser
 //  Copyright (c) 2011-2012 Bryce Adelstein-lelbach
+//  Copyright (c) 2012-2013 Alexander Duchene
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -9,9 +10,18 @@
 #include <boost/atomic.hpp>
 
 #include <errno.h>
+#include <map>
+#include <list>
 #undef NDEBUG
 
 const int MAGIC = 0xCAFEBABE;
+
+//Possibly should encapsulate
+struct tls_key{
+    void (*destructor_function)(void*);
+
+    tls_key(void (*destructor)(void*)):destructor_function(destructor){}
+};
 
 struct thread_handle
 {
@@ -21,10 +31,24 @@ struct thread_handle
 	hpx::lcos::local::promise<void*> promise;
 	hpx::lcos::future<void*> future;
     int cancel_flags;
+    std::map<tls_key*,const void*> thread_local_storage;
 
 	thread_handle() : id(), magic(MAGIC), refc(2),
         promise(), future(promise.get_future()), cancel_flags(HPXC_THREAD_CANCEL_ENABLE) {}
+
+    ~thread_handle();
 };
+
+thread_handle::~thread_handle(){
+    //Clean up tls
+    for(std::map<tls_key*,const void*>::iterator tls_iter=thread_local_storage.begin();
+            tls_iter!=thread_local_storage.end();
+            ++tls_iter){
+        if((*tls_iter).first->destructor_function){
+            ((*tls_iter).first->destructor_function)(const_cast<void*>((*tls_iter).second));
+        }
+    }
+}
 
 thread_handle *get_thread_data(hpx::threads::thread_id_type id)
 {
@@ -409,4 +433,28 @@ extern "C"
             std::cout << "self=" << self->get_thread_id() << std::endl;
         }
 	}
+
+    int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*)){
+        key->handle=new tls_key(destructor);
+        return 0;
+    }
+
+    int hpxc_key_delete(hpxc_key_t key){
+        delete ((tls_key*)(key.handle));
+        return 0;
+    }
+
+    int hpxc_setspecific(hpxc_key_t key, const void* value){
+        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        self->thread_local_storage[(tls_key*)key.handle]=value;
+        return 0;
+    }
+
+    void* hpxc_getspecific(hpxc_key_t key){
+        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        return const_cast<void*>(self->thread_local_storage[(tls_key*)key.handle]);
+        return 0;
+    }
+
+
 }
