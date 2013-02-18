@@ -176,6 +176,34 @@ extern "C"
 		return 0;
 	}
 
+    int hpxc_thread_setscope(hpxc_thread_attr_t *attr, int scope){
+        return 0;
+    }
+
+    int hpxc_thread_getscope(hpxc_thread_attr_t *attr, int* scope){
+        *scope=HPXC_THREAD_SCOPE_SYSTEM;
+        return 0;
+    }
+
+    int hpxc_thread_attr_setstacksize(hpxc_thread_attr_t *attr, size_t stacksize){
+        return 0;
+    }
+
+    int hpxc_thread_attr_getstacksize(const hpxc_thread_attr_t* attr, size_t* stacksize){
+        *stacksize=0;
+        return 0;
+    }
+
+    int hpxc_thread_setaffinity_np(hpxc_thread_t thread, size_t cpusetsize, const hpxc_cpu_set_t *cpuset){
+        return 0;
+    }
+
+    int hpxc_thread_getaffinity_np(hpxc_thread_t thread, size_t cpusetsize, hpxc_cpu_set_t *cpuset){
+        //what should cpuset be set to?
+        cpuset->handle=NULL;
+        return 0;
+    }
+
     int hpxc_thread_create(
         hpxc_thread_t* thread, 
         hpxc_thread_attr_t const* attr,
@@ -281,12 +309,13 @@ extern "C"
 	{
 		return { new hpx::lcos::local::spinlock() };
 	}
-	void hpxc_mutex_destroy(hpxc_mutex_t *mutex)
+	int hpxc_mutex_destroy(hpxc_mutex_t *mutex)
 	{
 		hpx::lcos::local::spinlock *lock =
 			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
 		delete lock;
 		mutex->handle = 0;
+        return 0;
 	}
 	int hpxc_mutex_lock(hpxc_mutex_t *mutex)
 	{
@@ -312,6 +341,26 @@ extern "C"
 			reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
 		return lock->try_lock();
 	}
+
+    int hpxc_spin_init(hpxc_spinlock_t *mut, void* unused){
+        return hpxc_mutex_init(mut, unused);
+    }
+
+    int hpxc_spin_lock(hpxc_spinlock_t *mut){
+        return hpxc_mutex_lock(mut);
+    }
+
+    int hpxc_spin_unlock(hpxc_spinlock_t *mut){
+        return hpxc_mutex_unlock(mut);
+    }
+
+    int hpxc_spin_trylock(hpxc_spinlock_t *mut){
+        return hpxc_mutex_trylock(mut);
+    }
+
+    int hpxc_spin_destroy(hpxc_spinlock_t *mut){
+        return hpxc_mutex_destroy(mut);
+    }
 
     int hpxc_thread_testcancel()
     {

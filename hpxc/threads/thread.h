@@ -9,6 +9,12 @@
 #define HPXC_THREADS_THREAD_18_SEP_2012_0134PM
 
 #include <hpxc/config.h>
+#if defined(__cplusplus)
+#include <cstddef>
+using std::size_t;
+#else
+#include <stddef.h>
+#endif
 
 #if defined(__cplusplus)
 extern "C" {
@@ -20,6 +26,8 @@ extern "C" {
     typedef struct hpxc_cond_t { void* handle; } hpxc_cond_t;
     typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
     typedef struct hpxc_key_t {void* handle;} hpxc_key_t;
+    typedef struct hpxc_cpu_set_t {void* handle;} hpxc_cpu_set_t;
+    typedef hpxc_mutex_t hpxc_spinlock_t;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Creates a new thread of execution.
@@ -56,6 +64,34 @@ extern "C" {
 		hpxc_thread_attr_t *attr,int *detach);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Dummy function for legacy support
+    HPXC_API_EXPORT int hpxc_thread_setscope(hpxc_thread_attr_t *attr, int scope);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Dummy function for legacy support
+    HPXC_API_EXPORT int hpxc_thread_attr_getscope(hpxc_thread_attr_t *attr, int *scope);
+    enum {
+        HPXC_THREAD_SCOPE_SYSTEM=0
+    };
+    
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Dummy function for legacy support
+    HPXC_API_EXPORT int hpxc_thread_attr_setstacksize(hpxc_thread_attr_t *attr, size_t stacksize);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Dummy function for legacy support
+    HPXC_API_EXPORT int hpxc_thread_attr_getstatcksize(const hpxc_thread_attr_t *attr, size_t* stacksize);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Dummy function for legacy support
+    HPXC_API_EXPORT int hpxc_thread_setaffinity_np(hpxc_thread_t thread, size_t cpusetsize, const hpxc_cpu_set_t *cpuset);
+
+
+    /////////////////////////////////////////////////////////////////////////////
+    /// \brief Dummy function for legacy support
+    HPXC_API_EXPORT int hpxc_thread_getaffinity_np(hpxc_thread_t thread, size_t cpusetsize, hpxc_cpu_set_t *cpuset);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the ID of the calling thread.
     ///
     /// \note Returns the equivalent of \a hpx::threads::thread_invalid_id if
@@ -72,7 +108,14 @@ extern "C" {
 	HPXC_API_EXPORT int hpxc_mutex_lock(hpxc_mutex_t *mut);
 	HPXC_API_EXPORT int hpxc_mutex_unlock(hpxc_mutex_t *mut);
 	HPXC_API_EXPORT int hpxc_mutex_trylock(hpxc_mutex_t *mut);
-	HPXC_API_EXPORT void hpxc_mutex_destroy(hpxc_mutex_t *mut);
+	HPXC_API_EXPORT int  hpxc_mutex_destroy(hpxc_mutex_t *mut);
+    
+	HPXC_API_EXPORT int hpxc_spin_init(hpxc_spinlock_t *mut,void *unused);
+	HPXC_API_EXPORT int hpxc_spin_lock(hpxc_spinlock_t *mut);
+	HPXC_API_EXPORT int hpxc_spin_unlock(hpxc_spinlock_t *mut);
+	HPXC_API_EXPORT int hpxc_spin_trylock(hpxc_spinlock_t *mut);
+	HPXC_API_EXPORT int hpxc_spin_destroy(hpxc_spinlock_t *mut);
+
     HPXC_API_EXPORT int hpxc_thread_testcancel();
     HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
     enum {
@@ -87,20 +130,20 @@ extern "C" {
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Creates key for thread local storage usable by all threads
-    //HPXC_API_EXPORT int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*));
+    HPXC_API_EXPORT int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*));
 
 
     ///////////////////////////////////////////////////////////////////////////:
     /// \brief Deletes a key
-    //HPXC_API_EXPORT int hpxc_key_delete(hpxc_key_t key);
+    HPXC_API_EXPORT int hpxc_key_delete(hpxc_key_t key);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Associates a value with a key
-    //HPXC_API_EXPORT int hpxc_setspecific(hpxc_key_t key, const void *value);
+    HPXC_API_EXPORT int hpxc_setspecific(hpxc_key_t key, const void *value);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Associates a value with a key
-    //HPXC_API_EXPORT void* hpxc_getspecific(hpxc_key_t key);
+    HPXC_API_EXPORT void* hpxc_getspecific(hpxc_key_t key);
 
 #define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 
