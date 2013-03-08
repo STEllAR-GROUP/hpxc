@@ -123,7 +123,9 @@ struct hpxc_thread_attr_handle
 	bool detach;
 	bool remote;
 	hpx::naming::id_type gid;
-	hpxc_thread_attr_handle() : detach(false), remote(false), gid() {}
+    size_t stacksize;
+	hpxc_thread_attr_handle() : detach(false), remote(false), gid(),
+        stacksize(hpx::threads::thread_stacksize_default) {}
 	
 	void run_remote() {
 		remote = true;
@@ -186,11 +188,22 @@ extern "C"
     }
 
     int hpxc_thread_attr_setstacksize(hpxc_thread_attr_t *attr, size_t stacksize){
+        if(attr->handle==NULL){
+            return EINVAL;
+        }
+        //hpxc_thread_attr_handle *handle=
+        //    reinterpret_cast<hpxc_thread_attr_handle*>(attr->handle);
+        //handle->stacksize=stacksize;
         return 0;
     }
 
     int hpxc_thread_attr_getstacksize(const hpxc_thread_attr_t* attr, size_t* stacksize){
-        *stacksize=0;
+        if(attr->handle==NULL){
+            return EINVAL;
+        }
+        hpxc_thread_attr_handle *handle=
+            reinterpret_cast<hpxc_thread_attr_handle*>(attr->handle);
+        *stacksize=handle->stacksize;
         return 0;
     }
 
@@ -211,16 +224,23 @@ extern "C"
         void* arguments)
     {
 		thread_handle *thandle = new thread_handle;
-
+        size_t stacksize=hpx::threads::thread_stacksize_default;
 		if(attr != NULL) {
             assert(0);
 			hpxc_thread_attr_handle *handle =
 				reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
+            stacksize=handle->stacksize;
 			if(handle->detach) {
                 thandle->refc--;
 				hpx::applier::register_thread(
 						HPX_STD_BIND(thread_function, arguments), 
-						"hpxc_thread_create");
+						"hpxc_thread_create",
+                        hpx::threads::pending,
+                        true,
+                        hpx::threads::thread_priority_normal,
+                        -1,
+                        hpx::threads::thread_stacksize_default);
+                        //stacksize);
 				return 0;
 			}
 		}
@@ -228,7 +248,13 @@ extern "C"
         hpx::threads::thread_id_type id = 
             hpx::applier::register_thread(
                 HPX_STD_BIND(wrapper_function, thandle, thread_function, arguments), 
-                "hpxc_thread_create");
+                "hpxc_thread_create",
+                hpx::threads::pending,
+                true,
+                hpx::threads::thread_priority_normal,
+                -1,
+                hpx::threads::thread_stacksize_default);
+                //stacksize);
         thandle->id = id;
         thread->handle = reinterpret_cast<void*>(thandle);
         hpx::threads::set_thread_interruption_enabled(
