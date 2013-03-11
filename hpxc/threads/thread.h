@@ -65,7 +65,7 @@ extern "C" {
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Dummy function for legacy support
-    HPXC_API_EXPORT int hpxc_thread_setscope(hpxc_thread_attr_t *attr, int scope);
+    HPXC_API_EXPORT int hpxc_thread_attr_setscope(hpxc_thread_attr_t *attr, int scope);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Dummy function for legacy support

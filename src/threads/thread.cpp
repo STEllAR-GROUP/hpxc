@@ -178,11 +178,11 @@ extern "C"
 		return 0;
 	}
 
-    int hpxc_thread_setscope(hpxc_thread_attr_t *attr, int scope){
+    int hpxc_thread_attr_setscope(hpxc_thread_attr_t *attr, int scope){
         return 0;
     }
 
-    int hpxc_thread_getscope(hpxc_thread_attr_t *attr, int* scope){
+    int hpxc_thread_attr_getscope(hpxc_thread_attr_t *attr, int* scope){
         *scope=HPXC_THREAD_SCOPE_SYSTEM;
         return 0;
     }
