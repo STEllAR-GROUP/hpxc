@@ -226,7 +226,6 @@ extern "C"
 		thread_handle *thandle = new thread_handle;
         size_t stacksize=hpx::threads::thread_stacksize_default;
 		if(attr != NULL) {
-            assert(0);
 			hpxc_thread_attr_handle *handle =
 				reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
             stacksize=handle->stacksize;

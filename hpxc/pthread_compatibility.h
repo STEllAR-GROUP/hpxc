@@ -1,3 +1,7 @@
+#ifndef _PTHREAD_H
+#define _PTHREAD_H
+#define _BITS_PTHREADTYPES_H
+
 #include <hpxc/threads.h>
 
 #define pthread_t hpxc_thread_t
@@ -49,3 +53,5 @@
 #define pthread_key_delete hpxc_key_delete
 #define pthread_setspecific hpxc_setspecific
 #define pthread_getspecific hpxc_getspecific
+
+#endif

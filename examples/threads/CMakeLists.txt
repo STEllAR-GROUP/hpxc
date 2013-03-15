@@ -13,6 +13,8 @@ set(example_programs
     cancel
     thread_local_storage
     pthread_test
+    fib_naive
+    pthread_compatibility_header
    )
 
 add_definitions("-DHPXC_APPLICATION_EXPORTS")
