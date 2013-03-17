@@ -6,9 +6,9 @@
 set(example_programs
     create_thread
     join_thread
-	counter
-	counter2
-	counter3
+    counter
+    counter2
+    counter3
     self
     cancel
     thread_local_storage

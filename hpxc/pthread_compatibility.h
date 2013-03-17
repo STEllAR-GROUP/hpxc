@@ -1,3 +1,8 @@
+//  Copyright (c) 2012-2013 Alexander Duchene
+//
+//  Distributed under the Boost Software License, Version 1.0. (See accompanying
+//  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
 #ifndef _PTHREAD_H
 #define _PTHREAD_H
 #define _BITS_PTHREADTYPES_H
@@ -53,5 +58,7 @@
 #define pthread_key_delete hpxc_key_delete
 #define pthread_setspecific hpxc_setspecific
 #define pthread_getspecific hpxc_getspecific
+
+#define PTHREAD_STACK_MIN HPXC_SMALL_STACK_SIZE
 
 #endif

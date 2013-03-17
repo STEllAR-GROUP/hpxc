@@ -1,4 +1,4 @@
-//  Copyright (c) 2007-2012 Hartmut Kaiser
+//  Copyright (c) 2007-2013 Hartmut Kaiser
 //  Copyright (c) 2011-2012 Bryce Adelstein-Lelbach
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -9,6 +9,10 @@
 
 #include <hpxc/config/user_main.h>
 #include <hpxc/config/export_definitions.h>
+
+#if !defined(HPXC_SMALL_STACK_SIZE)
+#  define HPXC_SMALL_STACK_SIZE     0x8000      // 32kByte
+#endif
 
 #endif
 

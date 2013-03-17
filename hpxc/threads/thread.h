@@ -47,21 +47,21 @@ extern "C" {
         hpxc_thread_t thread_id);
 
     HPXC_API_EXPORT void hpxc_init(
-		void (*init_func)(),
+        void (*init_func)(),
         int argc,
-		char *argv[]
+        char *argv[]
         );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Terminates the calling thread.
     HPXC_API_EXPORT void hpxc_thread_exit(void* value_ptr);
 
-	HPXC_API_EXPORT int hpxc_thread_attr_init(hpxc_thread_attr_t *attr);
-	HPXC_API_EXPORT int hpxc_thread_attr_destroy(hpxc_thread_attr_t *attr);
-	HPXC_API_EXPORT int hpxc_thread_attr_setdetachstate(
-		hpxc_thread_attr_t *attr,int detach);
-	HPXC_API_EXPORT int hpxc_thread_attr_getdetachstate(
-		hpxc_thread_attr_t *attr,int *detach);
+    HPXC_API_EXPORT int hpxc_thread_attr_init(hpxc_thread_attr_t *attr);
+    HPXC_API_EXPORT int hpxc_thread_attr_destroy(hpxc_thread_attr_t *attr);
+    HPXC_API_EXPORT int hpxc_thread_attr_setdetachstate(
+        hpxc_thread_attr_t *attr,int detach);
+    HPXC_API_EXPORT int hpxc_thread_attr_getdetachstate(
+        hpxc_thread_attr_t *attr,int *detach);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Dummy function for legacy support
@@ -98,23 +98,23 @@ extern "C" {
     ///       called from outside of an hpx-thread.
     HPXC_API_EXPORT hpxc_thread_t hpxc_thread_self(void);
 
-	HPXC_API_EXPORT int hpxc_cond_init(hpxc_cond_t *cond,void *unused);
-	HPXC_API_EXPORT int hpxc_cond_wait(hpxc_cond_t *cond,hpxc_mutex_t *unused);
-	HPXC_API_EXPORT int hpxc_cond_signal(hpxc_cond_t *cond);
-	HPXC_API_EXPORT int hpxc_cond_broadcast(hpxc_cond_t *cond);
+    HPXC_API_EXPORT int hpxc_cond_init(hpxc_cond_t *cond,void *unused);
+    HPXC_API_EXPORT int hpxc_cond_wait(hpxc_cond_t *cond,hpxc_mutex_t *unused);
+    HPXC_API_EXPORT int hpxc_cond_signal(hpxc_cond_t *cond);
+    HPXC_API_EXPORT int hpxc_cond_broadcast(hpxc_cond_t *cond);
 
-	HPXC_API_EXPORT int hpxc_mutex_init(hpxc_mutex_t *mut,void *unused);
-	HPXC_API_EXPORT hpxc_mutex_t hpxc_mutex_alloc();
-	HPXC_API_EXPORT int hpxc_mutex_lock(hpxc_mutex_t *mut);
-	HPXC_API_EXPORT int hpxc_mutex_unlock(hpxc_mutex_t *mut);
-	HPXC_API_EXPORT int hpxc_mutex_trylock(hpxc_mutex_t *mut);
-	HPXC_API_EXPORT int  hpxc_mutex_destroy(hpxc_mutex_t *mut);
+    HPXC_API_EXPORT int hpxc_mutex_init(hpxc_mutex_t *mut,void *unused);
+    HPXC_API_EXPORT hpxc_mutex_t hpxc_mutex_alloc();
+    HPXC_API_EXPORT int hpxc_mutex_lock(hpxc_mutex_t *mut);
+    HPXC_API_EXPORT int hpxc_mutex_unlock(hpxc_mutex_t *mut);
+    HPXC_API_EXPORT int hpxc_mutex_trylock(hpxc_mutex_t *mut);
+    HPXC_API_EXPORT int  hpxc_mutex_destroy(hpxc_mutex_t *mut);
     
-	HPXC_API_EXPORT int hpxc_spin_init(hpxc_spinlock_t *mut,void *unused);
-	HPXC_API_EXPORT int hpxc_spin_lock(hpxc_spinlock_t *mut);
-	HPXC_API_EXPORT int hpxc_spin_unlock(hpxc_spinlock_t *mut);
-	HPXC_API_EXPORT int hpxc_spin_trylock(hpxc_spinlock_t *mut);
-	HPXC_API_EXPORT int hpxc_spin_destroy(hpxc_spinlock_t *mut);
+    HPXC_API_EXPORT int hpxc_spin_init(hpxc_spinlock_t *mut,void *unused);
+    HPXC_API_EXPORT int hpxc_spin_lock(hpxc_spinlock_t *mut);
+    HPXC_API_EXPORT int hpxc_spin_unlock(hpxc_spinlock_t *mut);
+    HPXC_API_EXPORT int hpxc_spin_trylock(hpxc_spinlock_t *mut);
+    HPXC_API_EXPORT int hpxc_spin_destroy(hpxc_spinlock_t *mut);
 
     HPXC_API_EXPORT int hpxc_thread_testcancel();
     HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
