@@ -123,7 +123,7 @@ struct hpxc_thread_attr_handle
     bool detach;
     bool remote;
     hpx::naming::id_type gid;
-    size_t stacksize;
+    hpx::threads::thread_stacksize stacksize;
     hpxc_thread_attr_handle() : detach(false), remote(false), gid(),
         stacksize(hpx::threads::thread_stacksize_default) {}
 
@@ -191,9 +191,26 @@ extern "C"
         if(attr->handle==NULL){
             return EINVAL;
         }
-        //hpxc_thread_attr_handle *handle=
-        //    reinterpret_cast<hpxc_thread_attr_handle*>(attr->handle);
-        //handle->stacksize=stacksize;
+        hpxc_thread_attr_handle *handle=
+            reinterpret_cast<hpxc_thread_attr_handle*>(attr->handle);
+        if(stacksize > HPX_MEDIUM_STACK_SIZE){
+            if(stacksize > HPX_LARGE_STACK_SIZE){
+                handle->stacksize=hpx::threads::thread_stacksize_huge;
+            }
+            else{
+                handle->stacksize=hpx::threads::thread_stacksize_large;
+            }
+
+        }
+        else{
+            if(stacksize > HPX_SMALL_STACK_SIZE){
+                handle->stacksize=hpx::threads::thread_stacksize_medium;
+            }
+            else{
+                handle->stacksize=hpx::threads::thread_stacksize_small;
+            }
+        }
+
         return 0;
     }
 
@@ -203,7 +220,20 @@ extern "C"
         }
         hpxc_thread_attr_handle *handle=
             reinterpret_cast<hpxc_thread_attr_handle*>(attr->handle);
-        *stacksize=handle->stacksize;
+        switch (handle->stacksize){
+            case hpx::threads::thread_stacksize_small:
+                *stacksize=HPX_SMALL_STACK_SIZE;
+                break;
+            case hpx::threads::thread_stacksize_medium:
+                *stacksize=HPX_MEDIUM_STACK_SIZE;
+                break;
+            case hpx::threads::thread_stacksize_large:
+                *stacksize=HPX_LARGE_STACK_SIZE;
+                break;
+            case hpx::threads::thread_stacksize_huge:
+                *stacksize=HPX_HUGE_STACK_SIZE;
+                break;
+        }
         return 0;
     }
 
@@ -224,7 +254,7 @@ extern "C"
         void* arguments)
     {
         thread_handle *thandle = new thread_handle;
-        size_t stacksize=hpx::threads::thread_stacksize_default;
+        hpx::threads::thread_stacksize stacksize=hpx::threads::thread_stacksize_default;
         if(attr != NULL) {
             hpxc_thread_attr_handle *handle =
                 reinterpret_cast<hpxc_thread_attr_handle *>(attr->handle);
@@ -238,8 +268,7 @@ extern "C"
                         true,
                         hpx::threads::thread_priority_normal,
                         -1,
-                        hpx::threads::thread_stacksize_default);
-                        //stacksize);
+                        stacksize);
                 return 0;
             }
         }
@@ -252,8 +281,7 @@ extern "C"
                 true,
                 hpx::threads::thread_priority_normal,
                 -1,
-                hpx::threads::thread_stacksize_default);
-                //stacksize);
+                stacksize);
         thandle->id = id;
         thread->handle = reinterpret_cast<void*>(thandle);
         hpx::threads::set_thread_interruption_enabled(
