@@ -20,6 +20,7 @@
 #define pthread_join hpxc_thread_join
 #define pthread_detach hpxc_thread_detach
 #define pthread_exit hpxc_thread_exit
+#define pthread_self hpxc_thread_self
 
 #define pthread_attr_init hpxc_thread_attr_init
 #define pthread_attr_destroy hpxc_thread_attr_destroy
@@ -53,6 +54,9 @@
 
 #define pthread_testcancel hpxc_thread_testcancel
 #define pthread_cancel hpxc_thread_cancel
+#define pthread_setcancelstate hpxc_thread_setcancelstate
+#define PTHREAD_CANCEL_ENABLE HPXC_THREAD_CANCEL_ENABLE
+#define PTHREAD_CANCEL_DISABLE HPXC_THREAD_CANCEL_DISABLE
 
 #define pthread_key_create hpxc_key_create
 #define pthread_key_delete hpxc_key_delete

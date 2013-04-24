@@ -80,7 +80,7 @@ extern "C" {
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Dummy function for legacy support
-    HPXC_API_EXPORT int hpxc_thread_attr_getstatcksize(const hpxc_thread_attr_t *attr, size_t* stacksize);
+    HPXC_API_EXPORT int hpxc_thread_attr_getstacksize(const hpxc_thread_attr_t *attr, size_t* stacksize);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Dummy function for legacy support
