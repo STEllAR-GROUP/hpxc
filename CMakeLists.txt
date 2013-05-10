@@ -53,3 +53,9 @@ add_subdirectory(src)
 add_hpx_pseudo_target(examples)
 add_subdirectory(examples)
 
+MESSAGE(${CMAKE_BINARY_DIR})
+
+install(
+    DIRECTORY hpxc
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h")
