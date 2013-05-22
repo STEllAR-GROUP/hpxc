@@ -567,5 +567,8 @@ extern "C"
         return 0;
     }
 
+    int hpxc_thread_equal(hpxc_thread_t t1, hpxc_thread_t t2){
+        return get_thread_data(t1)==get_thread_data(t2);
+    }
 
 }

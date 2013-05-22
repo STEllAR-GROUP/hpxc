@@ -145,6 +145,8 @@ extern "C" {
     /// \brief Associates a value with a key
     HPXC_API_EXPORT void* hpxc_getspecific(hpxc_key_t key);
 
+    HPXC_API_EXPORT int hpxc_thread_equal(hpxc_thread_t t1, hpxc_thread_t t2);
+
 #define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 
 #if defined(__cplusplus)
