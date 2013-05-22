@@ -21,6 +21,7 @@
 #define pthread_detach hpxc_thread_detach
 #define pthread_exit hpxc_thread_exit
 #define pthread_self hpxc_thread_self
+#define pthread_equal hpxc_thread_equal
 
 #define pthread_attr_init hpxc_thread_attr_init
 #define pthread_attr_destroy hpxc_thread_attr_destroy
