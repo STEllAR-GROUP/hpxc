@@ -147,6 +147,10 @@ extern "C" {
 
     HPXC_API_EXPORT int hpxc_thread_equal(hpxc_thread_t t1, hpxc_thread_t t2);
 
+    HPXC_API_EXPORT void hpxc_thread_cleanup_push(void (*routine)(void*), \
+                                                  void* arg);
+    HPXC_API_EXPORT void hpxc_thread_cleanup_pop(int execute);
+
 #define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 
 #if defined(__cplusplus)
