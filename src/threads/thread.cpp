@@ -32,6 +32,7 @@ struct thread_handle
     hpx::lcos::future<void*> future;
     int cancel_flags;
     std::map<tls_key*,const void*> thread_local_storage;
+    std::vector< HPX_STD_FUNCTION<void()> > cleanup_functions;
 
     thread_handle() : id(), magic(MAGIC), refc(2),
         promise(), future(promise.get_future()), cancel_flags(HPXC_THREAD_CANCEL_ENABLE) {}
@@ -47,6 +48,13 @@ thread_handle::~thread_handle(){
         if((*tls_iter).first->destructor_function){
             ((*tls_iter).first->destructor_function)(const_cast<void*>((*tls_iter).second));
         }
+    }
+    //execute cleanup functions
+    for(std::vector< HPX_STD_FUNCTION<void()> >::reverse_iterator d_iter= \
+            cleanup_functions.rbegin();
+            d_iter != cleanup_functions.rend();
+            d_iter++){
+        (*d_iter)();
     }
 }
 
@@ -569,6 +577,20 @@ extern "C"
 
     int hpxc_thread_equal(hpxc_thread_t t1, hpxc_thread_t t2){
         return get_thread_data(t1)==get_thread_data(t2);
+    }
+
+    void hpxc_thread_cleanup_push(void (*routine)(void*), void* arg){
+        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        self->cleanup_functions.push_back( HPX_STD_BIND(routine, arg));
+        return;
+    }
+
+    void hpxc_thread_cleanup_pop(int execute){
+        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        if(execute){
+            self->cleanup_functions.back()();
+        }
+        self->cleanup_functions.pop_back();
     }
 
 }
