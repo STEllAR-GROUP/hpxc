@@ -45,7 +45,7 @@ long fib_helper(long n){
 }
 
 int hpxc_main(){
-    long n=20;
+    long n=13;
 
     double t1,t2;
     struct timeval tv;
@@ -60,7 +60,7 @@ int hpxc_main(){
     t1= tv.tv_sec + 1.0e-6*tv.tv_usec;
 
     i=fib_helper(n);
-    printf("Result: %d\n",i);
+    printf("Result: %ld\n",i);
 
     timerclear(&tv);
     gettimeofday(&tv,&tz);

@@ -23,7 +23,7 @@ void* incr(void* p)
     return NULL;
 }
 
-#define NTHREADS 100000
+#define NTHREADS 100
 void my_init()
 {
     int i;

@@ -338,6 +338,25 @@ extern "C"
         lock->lock();
         return 0;
     }
+    int hpxc_cond_timedwait(hpxc_cond_t *cond,hpxc_mutex_t *mutex,struct timespec tm)
+    {
+        cond_handle *cond_in =
+            reinterpret_cast<cond_handle *>(cond->handle);
+        hpx::lcos::local::spinlock *lock =
+            reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+
+        boost::shared_ptr<hpx::lcos::local::promise<int> > p =
+            boost::make_shared<hpx::lcos::local::promise<int> >();
+        cond_in->waiting.push_back(p);
+
+        lock->unlock();
+        hpx::lcos::future<int> future = p->get_future();
+        boost::chrono::nanoseconds tn(
+            static_cast<long long>(1000000000LL*tm.tv_sec+tm.tv_nsec));
+        future.wait_for(tn);
+        lock->lock();
+        return 0;
+    }
     int hpxc_cond_broadcast(hpxc_cond_t *cond)
     {
         cond_handle *cond_in =
@@ -576,7 +595,7 @@ extern "C"
     }
 
     int hpxc_thread_equal(hpxc_thread_t t1, hpxc_thread_t t2){
-        return get_thread_data(t1)==get_thread_data(t2);
+        return t1.handle==t2.handle;
     }
 
     void hpxc_thread_cleanup_push(void (*routine)(void*), void* arg){

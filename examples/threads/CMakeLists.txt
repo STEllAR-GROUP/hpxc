@@ -10,6 +10,7 @@ set(example_programs
     counter
     counter2
     counter3
+    counter4
     self
     cancel
     thread_local_storage

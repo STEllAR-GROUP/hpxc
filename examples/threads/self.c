@@ -12,7 +12,7 @@
 
 void* hello(void* p)
 {
-    printf("hello from id=%d\n",hpxc_thread_self());
+    printf("hello from id=%ld\n",hpxc_thread_self().handle - NULL);
     return 0;
 }
 
@@ -24,7 +24,7 @@ void my_init()
     for(i=0;i<NTHREADS;i++)
     {
         hpxc_thread_create(&threads[i],0,hello,0);
-        printf(" was id=%d\n",threads[i]);
+        printf(" was id=%ld\n",threads[i].handle-NULL);
     }
     printf("Comparing threads[0] and threads[1]: %d\n", \
             hpxc_thread_equal(threads[0],threads[1]));

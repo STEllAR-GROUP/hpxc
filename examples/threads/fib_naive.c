@@ -17,20 +17,20 @@ hpxc_thread_attr_t attr;
 void* fib(void* arg){
     hpxc_thread_t t1;
     hpxc_thread_t t2;
-    void* r1;
-    void* r2;
+    size_t r1;
+    size_t r2;
 
-    long n=(long)arg;
-    if(n==1 || n==2){
-        hpxc_thread_exit( (void*)(1));
+    size_t n=(size_t)arg;
+    if(n < 2) {
+        hpxc_thread_exit( (void*)(n));
     }
 
     hpxc_thread_create(&t1, &attr, fib, (void*)(n-1));
     hpxc_thread_create(&t2, &attr, fib, (void*)(n-2));
 
-    hpxc_thread_join(t1,&r1);
-    hpxc_thread_join(t2,&r2);
-    hpxc_thread_exit((void*)((long)(r1)+(long)(r2)));
+    hpxc_thread_join(t1,(void*)&r1);
+    hpxc_thread_join(t2,(void*)&r2);
+    hpxc_thread_exit((void*)(r1+r2));
     return NULL;
 }
 
@@ -44,11 +44,11 @@ long fib_helper(long n){
 }
 
 int hpxc_main(){
-    long n=20;
+    size_t n=13;
     double t1,t2;
     struct timeval tv;
     struct timezone tz;
-    long i;
+    size_t i;
 
     hpxc_thread_attr_init(&attr);
     timerclear(&tv);
@@ -56,7 +56,7 @@ int hpxc_main(){
     t1= tv.tv_sec + 1.0e-6*tv.tv_usec;
 
     i=fib_helper(n);
-    printf("Result: %d\n",i);
+    printf("Result: %ld\n",i);
 
     timerclear(&tv);
     gettimeofday(&tv,&tz);

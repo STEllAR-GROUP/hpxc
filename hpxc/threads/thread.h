@@ -11,9 +11,11 @@
 #include <hpxc/config.h>
 #if defined(__cplusplus)
 #include <cstddef>
+#include <ctime>
 using std::size_t;
 #else
 #include <stddef.h>
+#include <time.h>
 #endif
 
 #if defined(__cplusplus)
@@ -100,6 +102,7 @@ extern "C" {
 
     HPXC_API_EXPORT int hpxc_cond_init(hpxc_cond_t *cond,void *unused);
     HPXC_API_EXPORT int hpxc_cond_wait(hpxc_cond_t *cond,hpxc_mutex_t *unused);
+    HPXC_API_EXPORT int hpxc_cond_timedwait(hpxc_cond_t *cond,hpxc_mutex_t *mutex,struct timespec tm);
     HPXC_API_EXPORT int hpxc_cond_signal(hpxc_cond_t *cond);
     HPXC_API_EXPORT int hpxc_cond_broadcast(hpxc_cond_t *cond);
 
