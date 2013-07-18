@@ -22,6 +22,8 @@ struct tls_key{
     tls_key(void (*destructor)(void*)):destructor_function(destructor){}
 };
 
+struct hpxc_return { void *handle; };
+
 struct thread_handle
 {
     hpx::threads::thread_id_type id;
@@ -115,8 +117,8 @@ void wrapper_function(
     //BOOST_ASSERT(get_thread_data(thandle->id) == thandle);
     try {
         thandle->promise.set_value(thread_function(arguments));
-    } catch(void *ret) {
-        thandle->promise.set_value(ret);
+    } catch(hpxc_return *ret) {
+        thandle->promise.set_value(reinterpret_cast<void*>(ret));
     // Handle cancelation
     } catch(hpx::exception e) {
         if(e.get_error_code().value() != hpx::thread_interrupted) {
@@ -548,7 +550,7 @@ extern "C"
         // FIXME: is it safe to throw from an extern "C" function?
         // FIXME: Let's not throw a void* but package it up into a proper
         //        exception object (derived from hpx::exception)
-        throw value_ptr;
+        throw reinterpret_cast<hpxc_return*>(value_ptr);
     }
 
     ///////////////////////////////////////////////////////////////////////////
