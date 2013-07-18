@@ -8,7 +8,6 @@ link_directories(${HPX_LIBRARY_DIR})
 
 add_hpx_library_sources(hpxc
   GLOB_RECURSE GLOBS "${hpxc_SOURCE_DIR}/src/*.cpp")
-hpx_debug("hpxc" "hpxc_SOURCES: ${hpxc_SOURCES}")
 
 add_hpx_source_group(
   NAME hpxc 
@@ -18,7 +17,6 @@ add_hpx_source_group(
 
 add_hpx_library_headers(hpxc
   GLOB_RECURSE GLOBS "${hpxc_SOURCE_DIR}/hpxc/*.hpp")
-hpx_debug("hpxc" "hpxc_HEADERS: ${hpxc_HEADERS}")
 
 add_hpx_source_group(
   NAME hpxc 
@@ -30,8 +28,7 @@ add_definitions("-DHPXC_EXPORTS")
 
 # We intentionally check HPX_BUILD_TYPE, not the application build type, as
 # the HPX libraries will be suffixed depending on their build type, not ours.
-if("${HPX_BUILD_TYPE}" STREQUAL "Debug" OR
-   "${HPX_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+if("${HPX_BUILD_TYPE}" STREQUAL "Debug")
   add_hpx_library(hpxc SHARED
     ${hpxc_SOURCES} ${hpxc_HEADERS} 
     DEPENDENCIES hpx_init${HPX_DEBUG_POSTFIX}

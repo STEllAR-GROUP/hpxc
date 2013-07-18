@@ -12,7 +12,6 @@
 #include <errno.h>
 #include <map>
 #include <list>
-#undef NDEBUG
 
 const int MAGIC = 0xCAFEBABE;
 
@@ -26,7 +25,9 @@ struct tls_key{
 struct thread_handle
 {
     hpx::threads::thread_id_type id;
+#if HPX_DEBUG
     int magic;
+#endif
     boost::atomic<int> refc;
     hpx::lcos::local::promise<void*> promise;
     hpx::lcos::future<void*> future;
@@ -34,7 +35,11 @@ struct thread_handle
     std::map<tls_key*,const void*> thread_local_storage;
     std::vector< HPX_STD_FUNCTION<void()> > cleanup_functions;
 
-    thread_handle() : id(), magic(MAGIC), refc(2),
+    thread_handle() : id(),
+#if HPX_DEBUG
+    magic(MAGIC),
+#endif
+        refc(2),
         promise(), future(promise.get_future()), cancel_flags(HPXC_THREAD_CANCEL_ENABLE) {}
 
     ~thread_handle();
@@ -353,7 +358,7 @@ extern "C"
         hpx::lcos::future<int> future = p->get_future();
         boost::chrono::nanoseconds tn(
             static_cast<long long>(1000000000LL*tm.tv_sec+tm.tv_nsec));
-        future.wait_for(tn);
+        //future.wait_for(tn);
         lock->lock();
         return 0;
     }

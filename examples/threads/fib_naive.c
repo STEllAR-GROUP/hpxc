@@ -44,7 +44,7 @@ long fib_helper(long n){
 }
 
 int hpxc_main(){
-    size_t n=13;
+    size_t n=15;
     double t1,t2;
     struct timeval tv;
     struct timezone tz;
