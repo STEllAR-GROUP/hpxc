@@ -11,7 +11,7 @@
 #include <sys/time.h>
 #endif
 
-#define NTHREADS 10000
+#define NTHREADS 100000
 
 int counter = 0;
 

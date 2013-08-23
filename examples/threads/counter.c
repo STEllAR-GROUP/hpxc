@@ -23,8 +23,8 @@ void* incr(void* p)
     return NULL;
 }
 
-#define NTHREADS 100
-void my_init()
+#define NTHREADS 100000
+int my_init()
 {
     int i;
     hpxc_thread_t threads[NTHREADS];
@@ -39,6 +39,7 @@ void my_init()
         hpxc_thread_join(threads[i],0);
     }
     printf("finished: counter=%d\n",counter);
+    return 0;
 }
 
 int main(int argc, char* argv[]) {

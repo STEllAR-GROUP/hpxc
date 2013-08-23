@@ -96,7 +96,6 @@ void free_data(hpxc_thread_t thread)
     thread_handle *thandle =
         reinterpret_cast<thread_handle*>(thread.handle);
     BOOST_ASSERT(thandle->magic == MAGIC);
-    hpx::threads::set_thread_data(thandle->id,(size_t)0);
     delete thandle;
     thread.handle = NULL;
 }
@@ -122,10 +121,8 @@ void wrapper_function(
     // Handle cancelation
     } catch(hpx::exception e) {
         if(e.get_error_code().value() != hpx::thread_interrupted) {
-            // rethrow
             throw;
         }
-        thandle->promise.set_value(NULL);
     }
     int r = --thandle->refc;
     if(r == 0) {

@@ -25,8 +25,12 @@
 
 #define pthread_attr_init hpxc_thread_attr_init
 #define pthread_attr_destroy hpxc_thread_attr_destroy
+
 #define pthread_attr_setdetachstate hpxc_thread_attr_setdetachstate
 #define pthread_attr_getdetachstate hpxc_thread_attr_getdetachstate
+#define PTHREAD_CREATE_DETACHED HPXC_CREATE_DETACHED
+#define PTHREAD_CREATE_JOINABLE HPXC_CREATE_JOINABLE
+
 #define pthread_attr_setscope hpxc_thread_attr_setscope
 #define pthread_attr_getscope hpxc_thread_attr_getscope
 #define pthread_attr_setstacksize hpxc_thread_attr_setstacksize

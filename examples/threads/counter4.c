@@ -11,7 +11,7 @@
 #include <sys/time.h>
 #endif
 
-#define NTHREADS 10000
+#define NTHREADS 100000
 
 int counter = 0;
 
@@ -58,12 +58,11 @@ void my_init()
     hpxc_cond_init(&cond,NULL);
 
     hpxc_thread_attr_init(&attr);
-    hpxc_thread_attr_setdetachstate(&attr,1);
+    hpxc_thread_attr_setdetachstate(&attr,HPXC_CREATE_DETACHED);
     for(i=0;i<NTHREADS;i++)
     {
         hpxc_thread_t th;
         hpxc_thread_create(&th,NULL,incr,NULL);
-        hpxc_thread_detach(th);
     }
     hpxc_thread_attr_destroy(&attr);
 

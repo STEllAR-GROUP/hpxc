@@ -18,6 +18,9 @@ using std::size_t;
 #include <time.h>
 #endif
 
+#define HPXC_CREATE_DETACHED 1
+#define HPXC_CREATE_JOINABLE 0
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -126,7 +129,8 @@ extern "C" {
         HPXC_THREAD_CANCEL_ENABLE=2,
         HPXC_THREAD_CANCEL_DISABLE=0,
         HPXC_THREAD_CANCEL_DEFERRED=0,
-        HPXC_THREAD_CANCEL_ASYNCHRONOUS=8
+        HPXC_THREAD_CANCEL_ASYNCHRONOUS=8,
+        HPXC_THREAD_IS_DETACHED=16
     };
     HPXC_API_EXPORT int hpxc_thread_setcancelstate(int state,int *old_state);
     HPXC_API_EXPORT int hpxc_thread_setcanceltype(int state,int *old_state);
