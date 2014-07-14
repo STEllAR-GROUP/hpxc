@@ -20,6 +20,7 @@ using std::size_t;
 
 #define HPXC_CREATE_DETACHED 1
 #define HPXC_CREATE_JOINABLE 0
+#define HPXC_CANCELED (void*)-1
 
 #if defined(__cplusplus)
 extern "C" {

@@ -13,17 +13,25 @@
 void* until_I_die(void* p)
 {
     while(1)
+    {
         hpxc_thread_testcancel();
+    }
     return 0;
 }
 
 void my_init()
 {
+    void* retval;
+
     hpxc_thread_t once;
     hpxc_thread_create(&once,NULL,until_I_die,NULL);
     hpxc_thread_cancel(once);
-    hpxc_thread_join(once,NULL);
-    printf("Cancelation was successful.\n");
+    hpxc_thread_join(once,&retval);
+
+    if(retval != HPXC_CANCELED)
+        printf("Something went wront!\n");
+    else
+        printf("Cancelation was successful.\n");
 }
 
 int main(int argc, char* argv[]) {

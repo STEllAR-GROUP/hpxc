@@ -23,6 +23,8 @@ set(HPXC_VERSION
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake;${HPX_ROOT}/share/cmake-2.8/Modules)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
+cmake_policy(SET CMP0022 NEW)
+
 if(MSVC)
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 endif()

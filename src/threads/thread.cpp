@@ -109,8 +109,8 @@ void wrapper_function(
     BOOST_ASSERT(thandle->magic == MAGIC);
     hpx::threads::thread_self* self = hpx::threads::get_self_ptr();
     hpx::threads::set_thread_interruption_enabled(
-        self->get_thread_id(),true);
-    thandle->id = self->get_thread_id();
+        hpx::threads::get_self_id(),true);
+    thandle->id = hpx::threads::get_self_id();
     self->set_thread_data(
         reinterpret_cast<size_t>(thandle));
     //BOOST_ASSERT(get_thread_data(thandle->id) == thandle);
@@ -119,10 +119,11 @@ void wrapper_function(
     } catch(hpxc_return *ret) {
         thandle->promise.set_value(reinterpret_cast<void*>(ret));
     // Handle cancelation
+    } catch(hpx::thread_interrupted e) {
+        // release all 
+        thandle->promise.set_value(HPXC_CANCELED);
     } catch(hpx::exception e) {
-        if(e.get_error_code().value() != hpx::thread_interrupted) {
             throw;
-        }
     }
     int r = --thandle->refc;
     if(r == 0) {
@@ -245,6 +246,10 @@ extern "C"
             case hpx::threads::thread_stacksize_huge:
                 *stacksize=HPX_HUGE_STACK_SIZE;
                 break;
+            case hpx::threads::thread_stacksize_nostack:
+                HPX_ASSERT(false); // nostack not supported in hpxc
+                *stacksize=0;
+                break;
         }
         return 0;
     }
@@ -357,8 +362,10 @@ extern "C"
         hpx::lcos::future<int> future = p->get_future();
         boost::chrono::nanoseconds tn(
             static_cast<long long>(1000000000LL*tm.tv_sec+tm.tv_nsec));
-        //future.wait_for(tn);
+        hpx::lcos::future_status e = future.wait_for(tn);
         lock->lock();
+        if(e == hpx::lcos::future_status::timeout)
+            return ETIMEDOUT;
         return 0;
     }
     int hpxc_cond_broadcast(hpxc_cond_t *cond)
@@ -587,13 +594,13 @@ extern "C"
     }
 
     int hpxc_setspecific(hpxc_key_t key, const void* value){
-        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        thread_handle* self=::get_thread_data(hpx::threads::get_self_id());
         self->thread_local_storage[(tls_key*)key.handle]=value;
         return 0;
     }
 
     void* hpxc_getspecific(hpxc_key_t key){
-        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        thread_handle* self=::get_thread_data(hpx::threads::get_self_id());
         return const_cast<void*>(self->thread_local_storage[(tls_key*)key.handle]);
         return 0;
     }
@@ -603,13 +610,13 @@ extern "C"
     }
 
     void hpxc_thread_cleanup_push(void (*routine)(void*), void* arg){
-        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        thread_handle* self=::get_thread_data(hpx::threads::get_self_id());
         self->cleanup_functions.push_back( HPX_STD_BIND(routine, arg));
         return;
     }
 
     void hpxc_thread_cleanup_pop(int execute){
-        thread_handle* self=get_thread_data(hpx::threads::get_self_id());
+        thread_handle* self=::get_thread_data(hpx::threads::get_self_id());
         if(execute){
             self->cleanup_functions.back()();
         }

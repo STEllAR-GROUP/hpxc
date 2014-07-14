@@ -30,6 +30,7 @@
 #define pthread_attr_getdetachstate hpxc_thread_attr_getdetachstate
 #define PTHREAD_CREATE_DETACHED HPXC_CREATE_DETACHED
 #define PTHREAD_CREATE_JOINABLE HPXC_CREATE_JOINABLE
+#define PTHREAD_CANCELED HPXC_CANCELED
 
 #define pthread_attr_setscope hpxc_thread_attr_setscope
 #define pthread_attr_getscope hpxc_thread_attr_getscope
@@ -49,7 +50,7 @@
 #define pthread_mutex_lock hpxc_mutex_lock
 #define pthread_mutex_unlock hpxc_mutex_unlock
 #define pthread_mutex_trylock hpxc_mutex_trylock
-#define  pthread_mutex_destroy  hpxc_mutex_destroy
+#define pthread_mutex_destroy hpxc_mutex_destroy
 
 #define pthread_spin_init hpxc_spin_init
 #define pthread_spin_lock hpxc_spin_lock
