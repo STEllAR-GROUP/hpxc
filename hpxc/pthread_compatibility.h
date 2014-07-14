@@ -44,6 +44,7 @@
 #define pthread_cond_wait pthread_cond_wait
 #define pthread_cond_signal hpxc_cond_signal
 #define pthread_cond_broadcast hpxc_cond_broadcast
+#define pthread_cond_destroy hpxc_cond_destroy
 
 #define pthread_mutex_init hpxc_mutex_init
 #define pthread_mutex_alloc hpxc_mutex_alloc
