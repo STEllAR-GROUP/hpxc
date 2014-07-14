@@ -314,81 +314,91 @@ inline void resume_thread(hpx::threads::thread_id_type id, void** value_ptr)
     hpx::threads::set_thread_state(id, hpx::threads::pending);
 }
 
-struct cond_handle
-{
-    std::vector<
-        boost::shared_ptr<
-            hpx::lcos::local::promise<int>
-        >
-    > waiting;
-    cond_handle() : waiting() {}
-};
 
 extern "C"
 {
     int hpxc_cond_init(hpxc_cond_t *cond,void *unused)
     {
-        cond->handle = new cond_handle();
+        cond->handle = new hpx::lcos::local::condition_variable();
         return 0;
     }
     int hpxc_cond_wait(hpxc_cond_t *cond,hpxc_mutex_t *mutex)
     {
-        cond_handle *cond_in =
-            reinterpret_cast<cond_handle *>(cond->handle);
+        hpx::lcos::local::condition_variable *cond_var =
+            reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
         hpx::lcos::local::spinlock *lock =
             reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
 
-        boost::shared_ptr<hpx::lcos::local::promise<int> > p =
-            boost::make_shared<hpx::lcos::local::promise<int> >();
-        cond_in->waiting.push_back(p);
+        try{ 
+            cond_var->wait(*lock);
+        } catch (hpx::exception& e) {
+            return EINVAL; 
+        }
 
-        lock->unlock();
-        p->get_future().get();
-        lock->lock();
         return 0;
     }
-    int hpxc_cond_timedwait(hpxc_cond_t *cond,hpxc_mutex_t *mutex,struct timespec tm)
+    int hpxc_cond_timedwait(hpxc_cond_t *cond,hpxc_mutex_t *mutex, const struct timespec *tm)
     {
-        cond_handle *cond_in =
-            reinterpret_cast<cond_handle *>(cond->handle);
+/*
+        hpx::lcos::local::condition_variable *cond_var =
+            reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
         hpx::lcos::local::spinlock *lock =
             reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+*/
+        BOOST_ASSERT(false); // HAVING TROUBLE TO CONVERT timespec to boost::chrono
+/*
+        hpx::lcos::local::cv_status ret;
+        
+        try{
+            ret = cond_var->wait_until(*lock, tn);
+        } catch(hpx::exception& e) {
+            return EINVAL;
+        }
 
-        boost::shared_ptr<hpx::lcos::local::promise<int> > p =
-            boost::make_shared<hpx::lcos::local::promise<int> >();
-        cond_in->waiting.push_back(p);
-
-        lock->unlock();
-        hpx::lcos::future<int> future = p->get_future();
-        boost::chrono::nanoseconds tn(
-            static_cast<long long>(1000000000LL*tm.tv_sec+tm.tv_nsec));
-        hpx::lcos::future_status e = future.wait_for(tn);
-        lock->lock();
-        if(e == hpx::lcos::future_status::timeout)
-            return ETIMEDOUT;
+        switch(ret)
+        {
+            case timeout:
+                return ETIMEDOUT;
+            case error:
+                return EINVAL;
+            default:
+                break;
+        }
+  */      
         return 0;
     }
     int hpxc_cond_broadcast(hpxc_cond_t *cond)
     {
-        cond_handle *cond_in =
-            reinterpret_cast<cond_handle *>(cond->handle);
-        for(auto i=cond_in->waiting.begin(); i != cond_in->waiting.end();++i)
-        {
-            (*i)->set_value(0);
+        hpx::lcos::local::condition_variable *cond_var =
+            reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
+        
+        try{
+            cond_var->notify_all();
+        } catch(hpx::exception e) {
+            return EINVAL;
         }
-        cond_in->waiting.clear();
+
         return 0;
     }
     int hpxc_cond_signal(hpxc_cond_t *cond)
     {
-        cond_handle *cond_in =
-            reinterpret_cast<cond_handle *>(cond->handle);
-        if(cond_in->waiting.size() > 0)
-        {
-            cond_in->waiting.erase(
-                cond_in->waiting.begin(),
-                cond_in->waiting.begin()+1);
+        hpx::lcos::local::condition_variable *cond_var =
+            reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
+        
+        try{
+            cond_var->notify_one();
+        } catch(hpx::exception e) {
+            return EINVAL;
         }
+
+        return 0;
+    }
+    int hpxc_cond_destroy(hpxc_cond_t *cond)
+    {
+        hpx::lcos::local::condition_variable *cond_var =
+            reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
+        delete cond_var;
+        cond->handle = 0; 
         return 0;
     }
     int hpxc_mutex_init(hpxc_mutex_t *mutex,void *ignored)

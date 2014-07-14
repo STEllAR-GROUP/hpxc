@@ -106,9 +106,10 @@ extern "C" {
 
     HPXC_API_EXPORT int hpxc_cond_init(hpxc_cond_t *cond,void *unused);
     HPXC_API_EXPORT int hpxc_cond_wait(hpxc_cond_t *cond,hpxc_mutex_t *unused);
-    HPXC_API_EXPORT int hpxc_cond_timedwait(hpxc_cond_t *cond,hpxc_mutex_t *mutex,struct timespec tm);
+    HPXC_API_EXPORT int hpxc_cond_timedwait(hpxc_cond_t *cond,hpxc_mutex_t *mutex, const struct timespec *tm);
     HPXC_API_EXPORT int hpxc_cond_signal(hpxc_cond_t *cond);
     HPXC_API_EXPORT int hpxc_cond_broadcast(hpxc_cond_t *cond);
+    HPXC_API_EXPORT int hpxc_cond_destroy(hpxc_cond_t *cond);
 
     HPXC_API_EXPORT int hpxc_mutex_init(hpxc_mutex_t *mut,void *unused);
     HPXC_API_EXPORT hpxc_mutex_t hpxc_mutex_alloc();

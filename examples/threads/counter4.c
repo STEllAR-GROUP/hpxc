@@ -34,7 +34,7 @@ void *finish(void *p) {
     tm.tv_sec = 1;
     tm.tv_nsec = 0;
     while(counter < NTHREADS) {
-        hpxc_cond_timedwait(&cond,&mut,tm);
+        hpxc_cond_timedwait(&cond,&mut,&tm);
     }
     hpxc_mutex_unlock(&mut);
     printf("counter=%d\n",counter);
