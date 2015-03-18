@@ -27,7 +27,7 @@ struct hpxc_return { void *handle; };
 struct thread_handle
 {
     hpx::threads::thread_id_type id;
-#if HPX_DEBUG
+#if defined(HPX_DEBUG)
     int magic;
 #endif
     boost::atomic<int> refc;
@@ -35,10 +35,10 @@ struct thread_handle
     hpx::lcos::future<void*> future;
     int cancel_flags;
     std::map<tls_key*,const void*> thread_local_storage;
-    std::vector< HPX_STD_FUNCTION<void()> > cleanup_functions;
+    std::vector<hpx::util::function_nonser<void()> > cleanup_functions;
 
     thread_handle() : id(),
-#if HPX_DEBUG
+#if defined(HPX_DEBUG)
     magic(MAGIC),
 #endif
         refc(2),
@@ -57,7 +57,7 @@ thread_handle::~thread_handle(){
         }
     }
     //execute cleanup functions
-    for(std::vector< HPX_STD_FUNCTION<void()> >::reverse_iterator d_iter= \
+    for(std::vector<hpx::util::function_nonser<void()> >::reverse_iterator d_iter= \
             cleanup_functions.rbegin();
             d_iter != cleanup_functions.rend();
             d_iter++){
@@ -120,7 +120,7 @@ void wrapper_function(
         thandle->promise.set_value(reinterpret_cast<void*>(ret));
     // Handle cancelation
     } catch(hpx::thread_interrupted e) {
-        // release all 
+        // release all
         thandle->promise.set_value(HPXC_CANCELED);
     } catch(hpx::exception e) {
             throw;
@@ -279,7 +279,7 @@ extern "C"
             if(handle->detach) {
                 thandle->refc--;
                 hpx::applier::register_thread(
-                        HPX_STD_BIND(thread_function, arguments),
+                        hpx::util::bind(thread_function, arguments),
                         "hpxc_thread_create",
                         hpx::threads::pending,
                         true,
@@ -292,7 +292,7 @@ extern "C"
 
         hpx::threads::thread_id_type id =
             hpx::applier::register_thread(
-                HPX_STD_BIND(wrapper_function, thandle, thread_function, arguments),
+                hpx::util::bind(wrapper_function, thandle, thread_function, arguments),
                 "hpxc_thread_create",
                 hpx::threads::pending,
                 true,
@@ -314,6 +314,27 @@ inline void resume_thread(hpx::threads::thread_id_type id, void** value_ptr)
     hpx::threads::set_thread_state(id, hpx::threads::pending);
 }
 
+#if defined(HPX_HAVE_VERIFY_LOCKS)
+namespace hpx { namespace util
+{
+    template <>
+    struct ignore_while_checking<hpx::lcos::local::spinlock>
+    {
+        ignore_while_checking(hpx::lcos::local::spinlock* lock)
+          : mtx_(lock)
+        {
+            ignore_lock(mtx_);
+        }
+
+        ~ignore_while_checking()
+        {
+            reset_ignored(mtx_);
+        }
+
+        void const* mtx_;
+    };
+}}
+#endif
 
 extern "C"
 {
@@ -322,21 +343,23 @@ extern "C"
         cond->handle = new hpx::lcos::local::condition_variable();
         return 0;
     }
-    int hpxc_cond_wait(hpxc_cond_t *cond,hpxc_mutex_t *mutex)
+    int hpxc_cond_wait(hpxc_cond_t *cond, hpxc_mutex_t *mutex)
     {
         hpx::lcos::local::condition_variable *cond_var =
             reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
         hpx::lcos::local::spinlock *lock =
             reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
 
-        try{ 
+        try {
             cond_var->wait(*lock);
-        } catch (hpx::exception& e) {
-            return EINVAL; 
+        }
+        catch (hpx::exception&) {
+            return EINVAL;
         }
 
         return 0;
     }
+
     int hpxc_cond_timedwait(hpxc_cond_t *cond,hpxc_mutex_t *mutex, const struct timespec *tm)
     {
 /*
@@ -348,7 +371,7 @@ extern "C"
         BOOST_ASSERT(false); // HAVING TROUBLE TO CONVERT timespec to boost::chrono
 /*
         hpx::lcos::local::cv_status ret;
-        
+
         try{
             ret = cond_var->wait_until(*lock, tn);
         } catch(hpx::exception& e) {
@@ -364,14 +387,14 @@ extern "C"
             default:
                 break;
         }
-  */      
+  */
         return 0;
     }
     int hpxc_cond_broadcast(hpxc_cond_t *cond)
     {
         hpx::lcos::local::condition_variable *cond_var =
             reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
-        
+
         try{
             cond_var->notify_all();
         } catch(hpx::exception e) {
@@ -384,7 +407,7 @@ extern "C"
     {
         hpx::lcos::local::condition_variable *cond_var =
             reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
-        
+
         try{
             cond_var->notify_one();
         } catch(hpx::exception e) {
@@ -398,7 +421,7 @@ extern "C"
         hpx::lcos::local::condition_variable *cond_var =
             reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
         delete cond_var;
-        cond->handle = 0; 
+        cond->handle = 0;
         return 0;
     }
     int hpxc_mutex_init(hpxc_mutex_t *mutex,void *ignored)
@@ -621,7 +644,7 @@ extern "C"
 
     void hpxc_thread_cleanup_push(void (*routine)(void*), void* arg){
         thread_handle* self=::get_thread_data(hpx::threads::get_self_id());
-        self->cleanup_functions.push_back( HPX_STD_BIND(routine, arg));
+        self->cleanup_functions.push_back(hpx::util::bind(routine, arg));
         return;
     }
 

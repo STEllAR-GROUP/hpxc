@@ -31,16 +31,17 @@ extern "C" {
     typedef struct hpxc_mutex_t { void* handle; } hpxc_mutex_t;
     typedef struct hpxc_cond_t { void* handle; } hpxc_cond_t;
     typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
-    typedef struct hpxc_key_t {void* handle;} hpxc_key_t;
-    typedef struct hpxc_cpu_set_t {void* handle;} hpxc_cpu_set_t;
+    typedef struct hpxc_key_t { void* handle; } hpxc_key_t;
+    typedef struct hpxc_cpu_set_t { void* handle; } hpxc_cpu_set_t;
+
     typedef hpxc_mutex_t hpxc_spinlock_t;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Creates a new thread of execution.
     HPXC_API_EXPORT int hpxc_thread_create(
-        hpxc_thread_t* thread_id, 
+        hpxc_thread_t* thread_id,
         hpxc_thread_attr_t const* attributes,
-        void* (*thread_function)(void*), 
+        void* (*thread_function)(void*),
         void* arguments);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -54,9 +55,7 @@ extern "C" {
 
     HPXC_API_EXPORT void hpxc_init(
         void (*init_func)(),
-        int argc,
-        char *argv[]
-        );
+        int argc, char *argv[]);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Terminates the calling thread.
@@ -77,9 +76,9 @@ extern "C" {
     /// \brief Dummy function for legacy support
     HPXC_API_EXPORT int hpxc_thread_attr_getscope(hpxc_thread_attr_t *attr, int *scope);
     enum {
-        HPXC_THREAD_SCOPE_SYSTEM=0
+        HPXC_THREAD_SCOPE_SYSTEM = 0
     };
-    
+
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Dummy function for legacy support
     HPXC_API_EXPORT int hpxc_thread_attr_setstacksize(hpxc_thread_attr_t *attr, size_t stacksize);
@@ -117,7 +116,7 @@ extern "C" {
     HPXC_API_EXPORT int hpxc_mutex_unlock(hpxc_mutex_t *mut);
     HPXC_API_EXPORT int hpxc_mutex_trylock(hpxc_mutex_t *mut);
     HPXC_API_EXPORT int  hpxc_mutex_destroy(hpxc_mutex_t *mut);
-    
+
     HPXC_API_EXPORT int hpxc_spin_init(hpxc_spinlock_t *mut,void *unused);
     HPXC_API_EXPORT int hpxc_spin_lock(hpxc_spinlock_t *mut);
     HPXC_API_EXPORT int hpxc_spin_unlock(hpxc_spinlock_t *mut);
@@ -127,12 +126,12 @@ extern "C" {
     HPXC_API_EXPORT int hpxc_thread_testcancel();
     HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
     enum {
-        HPXC_THREAD_CANCELED=1,
-        HPXC_THREAD_CANCEL_ENABLE=2,
-        HPXC_THREAD_CANCEL_DISABLE=0,
-        HPXC_THREAD_CANCEL_DEFERRED=0,
-        HPXC_THREAD_CANCEL_ASYNCHRONOUS=8,
-        HPXC_THREAD_IS_DETACHED=16
+        HPXC_THREAD_CANCELED = 1,
+        HPXC_THREAD_CANCEL_ENABLE = 2,
+        HPXC_THREAD_CANCEL_DISABLE = 0,
+        HPXC_THREAD_CANCEL_DEFERRED = 0,
+        HPXC_THREAD_CANCEL_ASYNCHRONOUS = 8,
+        HPXC_THREAD_IS_DETACHED = 16
     };
     HPXC_API_EXPORT int hpxc_thread_setcancelstate(int state,int *old_state);
     HPXC_API_EXPORT int hpxc_thread_setcanceltype(int state,int *old_state);
@@ -140,7 +139,6 @@ extern "C" {
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Creates key for thread local storage usable by all threads
     HPXC_API_EXPORT int hpxc_key_create(hpxc_key_t *key, void (*destructor)(void*));
-
 
     ///////////////////////////////////////////////////////////////////////////:
     /// \brief Deletes a key
