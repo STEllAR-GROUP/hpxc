@@ -40,8 +40,8 @@
 #define pthread_getaffinity_np hpxc_thread_getaffinity_np
 
 
-#define pthread_cond_init pthread_cond_init
-#define pthread_cond_wait pthread_cond_wait
+#define pthread_cond_init hpxc_cond_init
+#define pthread_cond_wait hpxc_cond_wait
 #define pthread_cond_signal hpxc_cond_signal
 #define pthread_cond_broadcast hpxc_cond_broadcast
 #define pthread_cond_destroy hpxc_cond_destroy
