@@ -1,4 +1,4 @@
-//  Copyright (c) 2007-2012 Hartmut Kaiser
+//  Copyright (c) 2007-2017 Hartmut Kaiser
 //  Copyright (c) 2011-2012 Bryce Adelstein-Lelbach
 //  Copyright (c) 2012-2013 Alexander Duchene
 //
@@ -33,6 +33,8 @@ extern "C" {
     typedef struct hpxc_thread_attr_t { void* handle; } hpxc_thread_attr_t;
     typedef struct hpxc_key_t { void* handle; } hpxc_key_t;
     typedef struct hpxc_cpu_set_t { void* handle; } hpxc_cpu_set_t;
+    typedef struct hpxc_rwlock_t { void* handle; } hpxc_rwlock_t;
+    typedef struct hpxc_rwlockattr_t { void* handle; } hpxc_rwlockattr_t;
 
     typedef hpxc_mutex_t hpxc_spinlock_t;
 
@@ -122,6 +124,20 @@ extern "C" {
     HPXC_API_EXPORT int hpxc_spin_unlock(hpxc_spinlock_t *mut);
     HPXC_API_EXPORT int hpxc_spin_trylock(hpxc_spinlock_t *mut);
     HPXC_API_EXPORT int hpxc_spin_destroy(hpxc_spinlock_t *mut);
+
+    HPXC_API_EXPORT int hpxc_rwlock_init(hpxc_rwlock_t* lock,
+         hpxc_rwlockattr_t const* attr);
+    HPXC_API_EXPORT extern hpxc_rwlock_t lock;
+    HPXC_API_EXPORT int hpxc_rwlock_destroy(hpxc_rwlock_t *lock);
+    HPXC_API_EXPORT int hpxc_rwlock_rdlock(hpxc_rwlock_t *lock);
+    HPXC_API_EXPORT int hpxc_rwlock_timedrdlock(hpxc_rwlock_t* lock,
+         struct timespec const * abstime);
+    HPXC_API_EXPORT int hpxc_rwlock_tryrdlock(hpxc_rwlock_t *lock);
+    HPXC_API_EXPORT int hpxc_rwlock_wrlock(hpxc_rwlock_t *lock);
+    HPXC_API_EXPORT int hpxc_rwlock_timedwrlock(hpxc_rwlock_t* lock,
+         struct timespec const* abstime);
+    HPXC_API_EXPORT int hpxc_rwlock_trywrlock(hpxc_rwlock_t *lock);
+    HPXC_API_EXPORT int hpxc_rwlock_unlock(hpxc_rwlock_t *lock);
 
     HPXC_API_EXPORT int hpxc_thread_testcancel();
     HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);

@@ -1,4 +1,5 @@
 //  Copyright (c) 2012-2013 Alexander Duchene
+//  Copyright (c) 2017 Hartmut Kaiser
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,6 +16,7 @@
 #define pthread_attr_t hpxc_thread_attr_t
 #define pthread_key_t hpxc_key_t
 #define pthread_spinlock_t hpxc_spinlock_t
+#define pthread_rwlockattr_t hpxc_rwlockattr_t
 
 #define pthread_create hpxc_thread_create
 #define pthread_join hpxc_thread_join
@@ -58,6 +60,16 @@
 #define pthread_spin_unlock hpxc_spin_unlock
 #define pthread_spin_trylock hpxc_spin_trylock
 #define pthread_spin_destroy hpxc_spin_destroy
+
+#define pthread_rwlock_init hpxc_rwlock_init
+#define pthread_rwlock_destroy hpxc_rwlock_destroy
+#define pthread_rwlock_rdlock hpxc_rwlock_rdlock
+#define pthread_rwlock_timedrdlock hpxc_rwlock_timedrdlock
+#define pthread_rwlock_tryrdlock hpxc_rwlock_tryrdlock
+#define pthread_rwlock_wrlock hpxc_rwlock_wrlock
+#define pthread_rwlock_timedwrlock hpxc_rwlock_timedwrlock
+#define pthread_rwlock_trywrlock hpxc_rwlock_trywrlock
+#define pthread_rwlock_unlock hpxc_rwlock_unlock
 
 #define pthread_testcancel hpxc_thread_testcancel
 #define pthread_cancel hpxc_thread_cancel

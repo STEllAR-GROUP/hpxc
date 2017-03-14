@@ -1,4 +1,4 @@
-//  Copyright (c) 2007-2012 Hartmut Kaiser
+//  Copyright (c) 2007-2017 Hartmut Kaiser
 //  Copyright (c) 2011-2012 Bryce Adelstein-lelbach
 //  Copyright (c) 2012-2013 Alexander Duchene
 //
@@ -6,6 +6,8 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/hpx.hpp>
+#include <hpx/lcos/local/readers_writer_mutex.hpp>
+
 #include <hpxc/threads.h>
 #include <boost/atomic.hpp>
 
@@ -656,4 +658,83 @@ extern "C"
         self->cleanup_functions.pop_back();
     }
 
+    int hpxc_rwlock_init(hpxc_rwlock_t* mutex, hpxc_rwlockattr_t const* attr)
+    {
+        mutex->handle = new hpx::lcos::local::readers_writer_mutex();
+    }
+
+    hpxc_rwlock_t hpxc_rwmutex_alloc()
+    {
+        hpxc_rwlock_t mtx = { new hpx::lcos::local::readers_writer_mutex() };
+        return mtx;
+    }
+
+    hpxc_rwlock_t lock = hpxc_rwmutex_alloc();
+
+    int hpxc_rwlock_destroy(hpxc_rwlock_t *mutex)
+    {
+        hpx::lcos::local::readers_writer_mutex *mtx =
+            reinterpret_cast<hpx::lcos::local::readers_writer_mutex*>(mutex->handle);
+        delete mtx;
+        mutex->handle = 0;
+        return 0;
+    }
+
+    int hpxc_rwlock_rdlock(hpxc_rwlock_t *mutex)
+    {
+        if(mutex->handle == 0)
+            return EINVAL;
+        hpx::lcos::local::readers_writer_mutex *lock =
+            reinterpret_cast<hpx::lcos::local::readers_writer_mutex*>(mutex->handle);
+        lock->lock_shared();
+        return 0;
+    }
+
+    int hpxc_rwlock_timedrdlock(hpxc_rwlock_t* mutex, struct timespec const * abstime)
+    {
+        return -1;
+    }
+
+    int hpxc_rwlock_tryrdlock(hpxc_rwlock_t *mutex)
+    {
+        if(mutex->handle == 0)
+            return EINVAL;
+        hpx::lcos::local::readers_writer_mutex *lock =
+            reinterpret_cast<hpx::lcos::local::readers_writer_mutex*>(mutex->handle);
+        return lock->try_lock_shared() ? 0 : EBUSY;
+    }
+
+    int hpxc_rwlock_wrlock(hpxc_rwlock_t *mutex)
+    {
+        if(mutex->handle == 0)
+            return EINVAL;
+        hpx::lcos::local::readers_writer_mutex *lock =
+            reinterpret_cast<hpx::lcos::local::readers_writer_mutex*>(mutex->handle);
+        lock->lock();
+        return 0;
+    }
+
+    int hpxc_rwlock_timedwrlock(hpxc_rwlock_t* mutex, struct timespec const* abstime)
+    {
+        return -1;
+    }
+
+    int hpxc_rwlock_trywrlock(hpxc_rwlock_t *mutex)
+    {
+        if(mutex->handle == 0)
+            return EINVAL;
+        hpx::lcos::local::readers_writer_mutex *lock =
+            reinterpret_cast<hpx::lcos::local::readers_writer_mutex*>(mutex->handle);
+        return lock->try_lock() ? 0 : EBUSY;
+    }
+
+    int hpxc_rwlock_unlock(hpxc_rwlock_t *mutex)
+    {
+        if(mutex->handle == 0)
+            return EINVAL;
+        hpx::lcos::local::readers_writer_mutex *lock =
+            reinterpret_cast<hpx::lcos::local::readers_writer_mutex*>(mutex->handle);
+        lock->unlock();
+        return 0;
+    }
 }
