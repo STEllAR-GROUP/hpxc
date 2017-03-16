@@ -248,10 +248,6 @@ extern "C"
             case hpx::threads::thread_stacksize_huge:
                 *stacksize=HPX_HUGE_STACK_SIZE;
                 break;
-            case hpx::threads::thread_stacksize_nostack:
-                HPX_ASSERT(false); // nostack not supported in hpxc
-                *stacksize=0;
-                break;
         }
         return 0;
     }
@@ -342,13 +338,13 @@ extern "C"
 {
     int hpxc_cond_init(hpxc_cond_t *cond,void *unused)
     {
-        cond->handle = new hpx::lcos::local::condition_variable();
+        cond->handle = new hpx::lcos::local::condition_variable_any();
         return 0;
     }
     int hpxc_cond_wait(hpxc_cond_t *cond, hpxc_mutex_t *mutex)
     {
-        hpx::lcos::local::condition_variable *cond_var =
-            reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
+        hpx::lcos::local::condition_variable_any *cond_var =
+            reinterpret_cast<hpx::lcos::local::condition_variable_any *>(cond->handle);
         hpx::lcos::local::spinlock *lock =
             reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
 
@@ -394,8 +390,8 @@ extern "C"
     }
     int hpxc_cond_broadcast(hpxc_cond_t *cond)
     {
-        hpx::lcos::local::condition_variable *cond_var =
-            reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
+        hpx::lcos::local::condition_variable_any *cond_var =
+            reinterpret_cast<hpx::lcos::local::condition_variable_any *>(cond->handle);
 
         try{
             cond_var->notify_all();
@@ -407,8 +403,8 @@ extern "C"
     }
     int hpxc_cond_signal(hpxc_cond_t *cond)
     {
-        hpx::lcos::local::condition_variable *cond_var =
-            reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
+        hpx::lcos::local::condition_variable_any *cond_var =
+            reinterpret_cast<hpx::lcos::local::condition_variable_any *>(cond->handle);
 
         try{
             cond_var->notify_one();
@@ -420,8 +416,8 @@ extern "C"
     }
     int hpxc_cond_destroy(hpxc_cond_t *cond)
     {
-        hpx::lcos::local::condition_variable *cond_var =
-            reinterpret_cast<hpx::lcos::local::condition_variable *>(cond->handle);
+        hpx::lcos::local::condition_variable_any *cond_var =
+            reinterpret_cast<hpx::lcos::local::condition_variable_any *>(cond->handle);
         delete cond_var;
         cond->handle = 0;
         return 0;
@@ -661,6 +657,7 @@ extern "C"
     int hpxc_rwlock_init(hpxc_rwlock_t* mutex, hpxc_rwlockattr_t const* attr)
     {
         mutex->handle = new hpx::lcos::local::readers_writer_mutex();
+        return 0;
     }
 
     hpxc_rwlock_t hpxc_rwmutex_alloc()
@@ -669,7 +666,7 @@ extern "C"
         return mtx;
     }
 
-    hpxc_rwlock_t lock = hpxc_rwmutex_alloc();
+    hpxc_rwlock_t rw_lock_static = hpxc_rwmutex_alloc();
 
     int hpxc_rwlock_destroy(hpxc_rwlock_t *mutex)
     {
@@ -737,4 +734,11 @@ extern "C"
         lock->unlock();
         return 0;
     }
+
+    int hpxc_setcanceltype(int type, int *oldtype) {
+        // we have not implemented this yet
+        BOOST_ASSERT(false);
+        return 0;
+    }
+
 }

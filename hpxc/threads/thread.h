@@ -117,7 +117,7 @@ extern "C" {
     HPXC_API_EXPORT int hpxc_mutex_lock(hpxc_mutex_t *mut);
     HPXC_API_EXPORT int hpxc_mutex_unlock(hpxc_mutex_t *mut);
     HPXC_API_EXPORT int hpxc_mutex_trylock(hpxc_mutex_t *mut);
-    HPXC_API_EXPORT int  hpxc_mutex_destroy(hpxc_mutex_t *mut);
+    HPXC_API_EXPORT int hpxc_mutex_destroy(hpxc_mutex_t *mut);
 
     HPXC_API_EXPORT int hpxc_spin_init(hpxc_spinlock_t *mut,void *unused);
     HPXC_API_EXPORT int hpxc_spin_lock(hpxc_spinlock_t *mut);
@@ -127,7 +127,7 @@ extern "C" {
 
     HPXC_API_EXPORT int hpxc_rwlock_init(hpxc_rwlock_t* lock,
          hpxc_rwlockattr_t const* attr);
-    HPXC_API_EXPORT extern hpxc_rwlock_t lock;
+    HPXC_API_EXPORT extern hpxc_rwlock_t rw_lock_static;
     HPXC_API_EXPORT int hpxc_rwlock_destroy(hpxc_rwlock_t *lock);
     HPXC_API_EXPORT int hpxc_rwlock_rdlock(hpxc_rwlock_t *lock);
     HPXC_API_EXPORT int hpxc_rwlock_timedrdlock(hpxc_rwlock_t* lock,
@@ -173,6 +173,9 @@ extern "C" {
     HPXC_API_EXPORT void hpxc_thread_cleanup_push(void (*routine)(void*), \
                                                   void* arg);
     HPXC_API_EXPORT void hpxc_thread_cleanup_pop(int execute);
+
+
+    HPXC_API_EXPORT int hpxc_setcanceltype(int type, int *oldtype);
 
 #define HPXC_MUTEX_INITIALIZER hpxc_mutex_alloc()
 

@@ -4,9 +4,16 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#ifdef _PTHREAD_H
+#error "pthread.h has already been included"
+#endif
+
 #ifndef _PTHREAD_H
 #define _PTHREAD_H
 #define _BITS_PTHREADTYPES_H
+
+// prevent redeclaration of union/struct causing compile problems
+#define __have_pthread_attr_t
 
 #include <hpxc/threads.h>
 
@@ -41,12 +48,14 @@
 #define pthread_setaffinity_np hpxc_thread_setaffinity_np
 #define pthread_getaffinity_np hpxc_thread_getaffinity_np
 
-
 #define pthread_cond_init hpxc_cond_init
 #define pthread_cond_wait hpxc_cond_wait
 #define pthread_cond_signal hpxc_cond_signal
 #define pthread_cond_broadcast hpxc_cond_broadcast
 #define pthread_cond_destroy hpxc_cond_destroy
+
+#define PTHREAD_PROCESS_PRIVATE 0
+#define PTHREAD_MUTEX_INITIALIZER {0}
 
 #define pthread_mutex_init hpxc_mutex_init
 #define pthread_mutex_alloc hpxc_mutex_alloc
@@ -61,6 +70,7 @@
 #define pthread_spin_trylock hpxc_spin_trylock
 #define pthread_spin_destroy hpxc_spin_destroy
 
+#define pthread_rwlock_t hpxc_rwlock_t
 #define pthread_rwlock_init hpxc_rwlock_init
 #define pthread_rwlock_destroy hpxc_rwlock_destroy
 #define pthread_rwlock_rdlock hpxc_rwlock_rdlock
@@ -86,5 +96,8 @@
 #define phtread_cleanup_pop hpxc_thread_cleanup_pop
 
 #define PTHREAD_STACK_MIN HPXC_SMALL_STACK_SIZE
+
+#define PTHREAD_CANCEL_ASYNCHRONOUS 0
+#define pthread_setcanceltype hpxc_setcanceltype
 
 #endif
