@@ -1,11 +1,11 @@
 //  Copyright (c) 2012-2013 Alexander Duchene
-//  Copyright (c) 2017 Hartmut Kaiser
+//  Copyright (c) 2017-2022 Hartmut Kaiser
 //
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef _PTHREAD_H
-#define _PTHREAD_H
+#pragma once
+
 #define _BITS_PTHREADTYPES_H
 
 #include <hpxc/threads.h>
@@ -41,7 +41,6 @@
 #define pthread_setaffinity_np hpxc_thread_setaffinity_np
 #define pthread_getaffinity_np hpxc_thread_getaffinity_np
 
-
 #define pthread_cond_init hpxc_cond_init
 #define pthread_cond_wait hpxc_cond_wait
 #define pthread_cond_signal hpxc_cond_signal
@@ -49,7 +48,6 @@
 #define pthread_cond_destroy hpxc_cond_destroy
 
 #define pthread_mutex_init hpxc_mutex_init
-#define pthread_mutex_alloc hpxc_mutex_alloc
 #define pthread_mutex_lock hpxc_mutex_lock
 #define pthread_mutex_unlock hpxc_mutex_unlock
 #define pthread_mutex_trylock hpxc_mutex_trylock
@@ -86,5 +84,3 @@
 #define phtread_cleanup_pop hpxc_thread_cleanup_pop
 
 #define PTHREAD_STACK_MIN HPXC_SMALL_STACK_SIZE
-
-#endif
