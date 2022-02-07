@@ -7,6 +7,7 @@
 
 #include <hpx/hpx.hpp>
 
+#include <hpxc/config.h>
 #include <hpxc/threads.h>
 #include <hpxc/threads/readers_writers_mutex.hpp>
 #include <hpxc/util/init_hpx.hpp>
@@ -43,7 +44,7 @@ struct thread_handle
 #endif
     std::atomic<int> refc;
     hpx::lcos::local::promise<void*> promise;
-    hpx::lcos::future<void*> future;
+    hpx::future<void*> future;
     int cancel_flags;
     std::map<tls_key*, const void*> thread_local_storage;
     std::vector<hpx::util::function_nonser<void()>> cleanup_functions;
@@ -112,14 +113,14 @@ void free_data(hpxc_thread_t thread)
 }
 
 template <typename F>
-struct on_exit
+struct do_on_exit
 {
-    on_exit(F&& f)
+    do_on_exit(F&& f)
       : f_(f)
     {
     }
 
-    ~on_exit()
+    ~do_on_exit()
     {
         f_();
     }
@@ -133,7 +134,7 @@ void wrapper_function(
     HPX_ASSERT(thandle);
     HPX_ASSERT(thandle->magic == MAGIC);
 
-    on_exit _([&]() {
+    do_on_exit _([&]() {
         int r = --thandle->refc;
         if (r == 0)
         {
@@ -389,7 +390,8 @@ int hpxc_thread_create(hpxc_thread_t* thread, hpxc_thread_attr_t const* attr,
 // IMPLEMENT: value_ptr.
 inline void resume_thread(hpx::threads::thread_id_type id, void** value_ptr)
 {
-    hpx::threads::set_thread_state(id, hpx::threads::pending);
+    hpx::threads::set_thread_state(
+        id, hpx::threads::thread_schedule_state::pending);
 }
 
 extern "C" {
