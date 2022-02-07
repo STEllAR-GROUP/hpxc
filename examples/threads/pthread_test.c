@@ -1,20 +1,28 @@
 //  Copyright (c) 2012-2013 Alexander Duchene
+//  Copyright (c) 2022 Hartmut Kaiser
 //
-//  Distributed under the Boost Software License, Version 1.0. (See accompanying 
+//  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpxc/pthread_compatibility.h>
 #include <stdio.h>
 
-void* print_hello(void* nothing){
+int retval = 0;
+
+void* print_hello(void* nothing)
+{
     printf("hello!\n");
-    pthread_exit(NULL);
+    retval = 42;
+    pthread_exit(&retval);
     return NULL;
 }
 
-int hpxc_main(int argc, char** argv){
+int main(int argc, char** argv)
+{
     pthread_t test;
     pthread_create(&test, NULL, print_hello, NULL);
-    pthread_join(test,NULL);
+    int* result = NULL;
+    pthread_join(test, &result);
+    printf("Returned result: %d\n", *result);
     return 0;
 }

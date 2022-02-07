@@ -1,49 +1,41 @@
-# Copyright (c) 2007-2012 Hartmut Kaiser
+# Copyright (c) 2007-2022 Hartmut Kaiser
 #
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-include_directories(${HPX_INCLUDE_DIR})
-link_directories(${HPX_LIBRARY_DIR})
+set(hpxc_headers
+    hpxc/config.h
+    hpxc/config/export_definitions.h
+    hpxc/threads/readers_writers_mutex.hpp
+    hpxc/threads/thread.h
+    hpxc/util/init_hpx.hpp
+    hpxc/util/gettimeofday.h
+    hpxc/threads.h
+    hpxc/pthread_compatibility.h
+)
 
-#add_hpx_library_sources(hpxc
-#  GLOB_RECURSE GLOBS "${hpxc_SOURCE_DIR}/src/*.cpp")
-#
-#add_hpx_source_group(
-#  NAME hpxc
-#  CLASS "Source Files"
-#  ROOT ${hpxc_SOURCE_DIR}/src
-#  TARGETS ${hpxc_SOURCES})
-#
-#add_hpx_library_headers(hpxc
-#  GLOB_RECURSE GLOBS "${hpxc_SOURCE_DIR}/hpxc/*.hpp")
-#
-#add_hpx_source_group(
-#  NAME hpxc
-#  CLASS "Header Files"
-#  ROOT ${hpxc_SOURCE_DIR}/hpxc
-#  TARGETS ${hpxc_HEADERS})
+set(hpxc_sources src/threads/thread.cpp src/util/gettimeofday.cpp
+                 src/util/init_hpx.cpp
+)
 
-add_definitions("-DHPXC_EXPORTS")
+add_hpx_library(
+  hpxc STATIC
+  SOURCE_ROOT "${PROJECT_SOURCE_DIR}"
+  HEADER_ROOT "${PROJECT_SOURCE_DIR}"
+  HEADERS ${hpxc_headers}
+  SOURCES ${hpxc_sources}
+  DEPENDENCIES HPX::hpx
+  PREPEND_HEADER_ROOT PREPEND_SOURCE_ROOT ESSENTIAL
+)
 
-# We intentionally check HPX_BUILD_TYPE, not the application build type, as
-# the HPX libraries will be suffixed depending on their build type, not ours.
-add_hpx_library(hpxc SHARED
-    SOURCE_ROOT "${hpxc_SOURCE_DIR}/src"
-    HEADER_ROOT "${hpxc_SOURCE_DIR}/hpxc"
-    DEPENDENCIES hpx_init${HPX_DEBUG_POSTFIX}
-    OUTPUT_SUFFIX lib/hpx
-    AUTOGLOB
-    ESSENTIAL)
+set_target_properties(
+  hpxc
+  PROPERTIES COMPILE_DEFINITIONS HPXC_EXPORTS
+             VERSION ${HPXC_VERSION}
+             SOVERSION ${HPXC_SOVERSION}
+             CLEAN_DIRECT_OUTPUT 1
+             OUTPUT_NAME hpxc${HPX_DEBUG_POSTFIX}
+             FOLDER "Core"
+)
 
-# Don't cause our applications to link against hpx_init.
-set_target_properties(hpxc_lib PROPERTIES LINK_INTERFACE_LIBRARIES "")
-
-set_target_properties(hpxc_lib PROPERTIES
-  VERSION ${HPXC_VERSION}
-  SOVERSION ${HPXC_SOVERSION}
-  CLEAN_DIRECT_OUTPUT 1
-  OUTPUT_NAME hpxc${HPX_DEBUG_POSTFIX}
-  FOLDER "Core")
-install(TARGETS hpxc_lib
-    DESTINATION lib)
+install(TARGETS hpxc DESTINATION lib)
