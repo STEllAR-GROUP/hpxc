@@ -47,6 +47,6 @@ foreach(example_program ${example_programs})
 
   # add dependencies to pseudo-target
   add_hpx_pseudo_dependencies(
-    examples.threads.${example_program} ${example_program}_exe
+    examples.threads.${example_program} ${example_program}
   )
 endforeach()

@@ -9,7 +9,7 @@
 #include <hpxc/config/export_definitions.h>
 
 #if !defined(_MSC_VER)
-#define HPXC_HAVE_RW_LOCK
+//#define HPXC_HAVE_RW_LOCK
 #endif
 
 #if !defined(HPXC_SMALL_STACK_SIZE)

@@ -83,4 +83,5 @@
 #define phtread_cleanup_push hpxc_thread_cleanup_push
 #define phtread_cleanup_pop hpxc_thread_cleanup_pop
 
+#undef PTHREAD_STACK_MIN 
 #define PTHREAD_STACK_MIN HPXC_SMALL_STACK_SIZE

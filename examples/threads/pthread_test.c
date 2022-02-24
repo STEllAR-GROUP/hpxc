@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     pthread_t test;
     pthread_create(&test, NULL, print_hello, NULL);
     int* result = NULL;
-    pthread_join(test, &result);
+    pthread_join(test, (void**) &result);
     printf("Returned result: %d\n", *result);
     return 0;
 }
