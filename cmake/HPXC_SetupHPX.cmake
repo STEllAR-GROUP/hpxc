@@ -4,7 +4,8 @@
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-set(HPX_REQUIRED_HPX_VERSION 1.7.0)
+set(HPX_REQUIRED_HPX_VERSION 1.8.0)
+set(HPXC_WITH_HPX_TAG_DEFAULT "1.8.0")
 
 if(NOT HPXC_WITH_FETCH_HPX)
   find_package(HPX ${HPX_REQUIRED_HPX_VERSION} REQUIRED)
