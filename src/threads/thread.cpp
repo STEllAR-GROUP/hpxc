@@ -43,11 +43,11 @@ struct thread_handle
     int magic;
 #endif
     std::atomic<int> refc;
-    hpx::lcos::local::promise<void*> promise;
+    hpx::promise<void*> promise;
     hpx::future<void*> future;
     int cancel_flags;
     std::map<tls_key*, const void*> thread_local_storage;
-    std::vector<hpx::util::function_nonser<void()>> cleanup_functions;
+    std::vector<hpx::function<void()>> cleanup_functions;
     hpxc_return retval;
 
     thread_handle()
@@ -402,7 +402,7 @@ int hpxc_cond_init(hpxc_cond_t* cond, void* unused)
         return EINVAL;
     try
     {
-        cond->handle = new hpx::lcos::local::condition_variable();
+        cond->handle = new hpx::condition_variable();
     }
     catch (...)
     {
@@ -418,11 +418,11 @@ int hpxc_cond_wait(hpxc_cond_t* cond, hpxc_mutex_t* mutex)
         return EINVAL;
 
     auto* cond_var =
-        reinterpret_cast<hpx::lcos::local::condition_variable*>(cond->handle);
+        reinterpret_cast<hpx::condition_variable*>(cond->handle);
     if (cond_var == nullptr)
         return EINVAL;
 
-    auto* lock = reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+    auto* lock = reinterpret_cast<hpx::spinlock*>(mutex->handle);
     if (lock == nullptr)
         return EINVAL;
 
@@ -447,15 +447,15 @@ int hpxc_cond_timedwait(
         return EINVAL;
 
     auto* cond_var =
-        reinterpret_cast<hpx::lcos::local::condition_variable*>(cond->handle);
+        reinterpret_cast<hpx::condition_variable*>(cond->handle);
     if (cond_var == nullptr)
         return EINVAL;
 
-    auto* lock = reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+    auto* lock = reinterpret_cast<hpx::spinlock*>(mutex->handle);
     if (lock == nullptr)
         return EINVAL;
 
-    hpx::lcos::local::cv_status ret;
+    hpx::cv_status ret;
     try
     {
         auto duration = std::chrono::seconds(tm->tv_sec) +
@@ -473,10 +473,10 @@ int hpxc_cond_timedwait(
 
     switch (ret)
     {
-    case hpx::lcos::local::cv_status::timeout:
+    case hpx::cv_status::timeout:
         return ETIMEDOUT;
 
-    case hpx::lcos::local::cv_status::error:
+    case hpx::cv_status::error:
         return EINVAL;
 
     default:
@@ -491,7 +491,7 @@ int hpxc_cond_broadcast(hpxc_cond_t* cond)
         return EINVAL;
 
     auto* cond_var =
-        reinterpret_cast<hpx::lcos::local::condition_variable*>(cond->handle);
+        reinterpret_cast<hpx::condition_variable*>(cond->handle);
     if (cond_var == nullptr)
         return EINVAL;
 
@@ -513,7 +513,7 @@ int hpxc_cond_signal(hpxc_cond_t* cond)
         return EINVAL;
 
     auto* cond_var =
-        reinterpret_cast<hpx::lcos::local::condition_variable*>(cond->handle);
+        reinterpret_cast<hpx::condition_variable*>(cond->handle);
     if (cond_var == nullptr)
         return EINVAL;
 
@@ -535,7 +535,7 @@ int hpxc_cond_destroy(hpxc_cond_t* cond)
         return EINVAL;
 
     auto* cond_var =
-        reinterpret_cast<hpx::lcos::local::condition_variable*>(cond->handle);
+        reinterpret_cast<hpx::condition_variable*>(cond->handle);
     cond->handle = nullptr;
 
     delete cond_var;
@@ -549,7 +549,7 @@ int hpxc_mutex_init(hpxc_mutex_t* mutex, void* ignored)
 
     try
     {
-        mutex->handle = new hpx::lcos::local::spinlock();
+        mutex->handle = new hpx::spinlock();
     }
     catch (...)
     {
@@ -571,7 +571,7 @@ int hpxc_mutex_destroy(hpxc_mutex_t* mutex)
     if (mutex == nullptr)
         return EINVAL;
 
-    auto* lock = reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+    auto* lock = reinterpret_cast<hpx::spinlock*>(mutex->handle);
     mutex->handle = nullptr;
 
     delete lock;
@@ -582,7 +582,7 @@ int hpxc_mutex_lock(hpxc_mutex_t* mutex)
 {
     if (mutex == nullptr)
         return EINVAL;
-    auto* lock = reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+    auto* lock = reinterpret_cast<hpx::spinlock*>(mutex->handle);
     if (lock == nullptr)
         return EINVAL;
     lock->lock();
@@ -593,7 +593,7 @@ int hpxc_mutex_unlock(hpxc_mutex_t* mutex)
 {
     if (mutex == nullptr)
         return EINVAL;
-    auto* lock = reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+    auto* lock = reinterpret_cast<hpx::spinlock*>(mutex->handle);
     if (lock == nullptr)
         return EINVAL;
     lock->unlock();
@@ -604,7 +604,7 @@ int hpxc_mutex_trylock(hpxc_mutex_t* mutex)
 {
     if (mutex == nullptr)
         return EINVAL;
-    auto* lock = reinterpret_cast<hpx::lcos::local::spinlock*>(mutex->handle);
+    auto* lock = reinterpret_cast<hpx::spinlock*>(mutex->handle);
     return lock->try_lock();
 }
 
@@ -653,7 +653,7 @@ int hpxc_thread_cancel(hpxc_thread_t thread)
         return ESRCH;
     HPX_ASSERT(thandle->magic == MAGIC);
 
-    hpx::error_code ec(hpx::lightweight);
+    hpx::error_code ec(hpx::throwmode::lightweight);
     hpx::threads::interrupt_thread(thandle->id.noref(), ec);
     if (ec)
     {
@@ -820,7 +820,7 @@ int hpxc_thread_equal(hpxc_thread_t t1, hpxc_thread_t t2)
 void hpxc_thread_cleanup_push(void (*routine)(void*), void* arg)
 {
     thread_handle* self = ::get_thread_data(hpx::threads::get_self_id());
-    self->cleanup_functions.push_back(hpx::util::bind(routine, arg));
+    self->cleanup_functions.push_back(hpx::bind(routine, arg));
     return;
 }
 
