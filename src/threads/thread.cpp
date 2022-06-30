@@ -308,6 +308,8 @@ int hpxc_thread_attr_getstacksize(
         HPX_ASSERT(false);    // nostack not supported in hpxc
         *stacksize = 0;
         break;
+    default:
+        break;
     }
     return 0;
 }
