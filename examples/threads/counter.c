@@ -39,6 +39,9 @@ int main(int argc, char* argv[])
     {
         hpxc_thread_join(threads[i], 0);
     }
+
+    hpxc_mutex_destroy(&mut);
+
     printf("finished: counter=%d\n", counter);
 
     return 0;

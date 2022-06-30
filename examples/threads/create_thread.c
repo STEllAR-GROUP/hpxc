@@ -10,8 +10,6 @@
 #include <unistd.h>
 #endif
 
-#include <crtdbg.h>
-
 void* hello_thread(void* p)
 {
     int* n = (int*) p;

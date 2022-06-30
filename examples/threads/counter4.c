@@ -65,12 +65,15 @@ int main(int argc, char* argv[])
     for (i = 0; i < NTHREADS; i++)
     {
         hpxc_thread_t th;
-        hpxc_thread_create(&th, NULL, incr, NULL);
+        hpxc_thread_create(&th, &attr, incr, NULL);
     }
     hpxc_thread_attr_destroy(&attr);
 
     hpxc_thread_create(&fin, NULL, finish, NULL);
     hpxc_thread_join(fin, NULL);
+
+    hpxc_cond_destroy(&cond);
+    hpxc_mutex_destroy(&mut);
 
     timerclear(&tv);
     gettimeofday(&tv, &tz);

@@ -49,8 +49,6 @@ int main(int argc, char* argv[])
     double t1, t2;
     hpxc_thread_t fin;
 
-    mut = HPXC_MUTEX_INITIALIZER;
-
     timerclear(&tv);
     gettimeofday(&tv, &tz);
     t1 = tv.tv_sec + 1.0e-6 * tv.tv_usec;
@@ -66,6 +64,9 @@ int main(int argc, char* argv[])
 
     hpxc_thread_create(&fin, NULL, finish, NULL);
     hpxc_thread_join(fin, NULL);
+
+    hpxc_cond_destroy(&cond);
+    hpxc_mutex_destroy(&mut);
 
     timerclear(&tv);
     gettimeofday(&tv, &tz);
