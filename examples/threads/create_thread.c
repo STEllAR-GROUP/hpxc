@@ -17,9 +17,8 @@ void* hello_thread(void* p)
     printf("hello world=%d\n", *n);
     r = (int*) malloc(sizeof(int));
     *r = 2 * (*n);
-    free(p);
     hpxc_thread_exit(r);
-    return r;
+    return NULL;
 }
 
 int main(int argc, char* argv[])
@@ -31,7 +30,9 @@ int main(int argc, char* argv[])
     hpxc_thread_create(&thread, NULL, hello_thread, n);
     hpxc_thread_join(thread, (void**) &r);
     printf("r=%d\n", *r);
+
     free(n);
+    free(r);
 
     return 0;
 }

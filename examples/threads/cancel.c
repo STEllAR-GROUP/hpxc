@@ -11,6 +11,9 @@
 #include <unistd.h>
 #endif
 
+int hpxc_thread_testcancel();
+int hpxc_thread_cancel(hpxc_thread_t);
+
 void* until_I_die(void* p)
 {
     while (1)
@@ -30,7 +33,7 @@ int main(int argc, char* argv[])
     hpxc_thread_join(once, &retval);
 
     if (retval != HPXC_CANCELED)
-        printf("Something went wront!\n");
+        printf("Something went wrong!\n");
     else
         printf("Cancelation was successful.\n");
 

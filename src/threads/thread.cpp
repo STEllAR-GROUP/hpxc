@@ -15,6 +15,7 @@
 #include <atomic>
 #include <cerrno>
 #include <chrono>
+#include <csetjmp>
 #include <list>
 #include <map>
 
@@ -31,11 +32,6 @@ struct tls_key
     }
 };
 
-struct hpxc_return
-{
-    void* handle = nullptr;
-};
-
 struct thread_handle
 {
     hpx::threads::thread_id_ref_type id;
@@ -48,7 +44,8 @@ struct thread_handle
     int cancel_flags;
     std::map<tls_key*, const void*> thread_local_storage;
     std::vector<hpx::function<void()>> cleanup_functions;
-    hpxc_return retval;
+    void* retval;
+    std::jmp_buf env;
 
     thread_handle()
       : id()
@@ -59,7 +56,7 @@ struct thread_handle
       , promise()
       , future(promise.get_future())
       , cancel_flags(HPXC_THREAD_CANCEL_ENABLE)
-      , retval()
+      , retval(nullptr)
     {
     }
 
@@ -99,6 +96,7 @@ thread_handle* get_thread_data(hpx::threads::thread_id_type id)
 thread_handle* get_thread_data(hpxc_thread_t thread)
 {
     thread_handle* thandle = reinterpret_cast<thread_handle*>(thread.handle);
+    HPX_ASSERT(thandle->magic == MAGIC);
     return thandle;
 }
 
@@ -152,18 +150,15 @@ void wrapper_function(
     // HPX_ASSERT(get_thread_data(thandle->id) == thandle);
     try
     {
-        thandle->retval.handle = thread_function(arguments);
-        thandle->promise.set_value(thandle->retval.handle);
-    }
-    catch (hpxc_return const& ret)
-    {
-        // Handle cancelation
-        thandle->retval.handle = ret.handle;
-        thandle->promise.set_value(ret.handle);
+        if (!setjmp(thandle->env))
+        {
+            thandle->retval = thread_function(arguments);
+        }
+        thandle->promise.set_value(thandle->retval);
     }
     catch (hpx::thread_interrupted const&)
     {
-        thandle->promise.set_value(thandle->retval.handle);
+        thandle->promise.set_value(HPXC_CANCELED);
     }
     catch (...)
     {
@@ -313,6 +308,8 @@ int hpxc_thread_attr_getstacksize(
         HPX_ASSERT(false);    // nostack not supported in hpxc
         *stacksize = 0;
         break;
+    default:
+        break;
     }
     return 0;
 }
@@ -417,8 +414,7 @@ int hpxc_cond_wait(hpxc_cond_t* cond, hpxc_mutex_t* mutex)
     if (cond == nullptr || mutex == nullptr)
         return EINVAL;
 
-    auto* cond_var =
-        reinterpret_cast<hpx::condition_variable*>(cond->handle);
+    auto* cond_var = reinterpret_cast<hpx::condition_variable*>(cond->handle);
     if (cond_var == nullptr)
         return EINVAL;
 
@@ -446,8 +442,7 @@ int hpxc_cond_timedwait(
     if (cond == nullptr || mutex == nullptr || tm == nullptr)
         return EINVAL;
 
-    auto* cond_var =
-        reinterpret_cast<hpx::condition_variable*>(cond->handle);
+    auto* cond_var = reinterpret_cast<hpx::condition_variable*>(cond->handle);
     if (cond_var == nullptr)
         return EINVAL;
 
@@ -490,8 +485,7 @@ int hpxc_cond_broadcast(hpxc_cond_t* cond)
     if (cond == nullptr)
         return EINVAL;
 
-    auto* cond_var =
-        reinterpret_cast<hpx::condition_variable*>(cond->handle);
+    auto* cond_var = reinterpret_cast<hpx::condition_variable*>(cond->handle);
     if (cond_var == nullptr)
         return EINVAL;
 
@@ -512,8 +506,7 @@ int hpxc_cond_signal(hpxc_cond_t* cond)
     if (cond == nullptr)
         return EINVAL;
 
-    auto* cond_var =
-        reinterpret_cast<hpx::condition_variable*>(cond->handle);
+    auto* cond_var = reinterpret_cast<hpx::condition_variable*>(cond->handle);
     if (cond_var == nullptr)
         return EINVAL;
 
@@ -534,8 +527,7 @@ int hpxc_cond_destroy(hpxc_cond_t* cond)
     if (cond == nullptr)
         return EINVAL;
 
-    auto* cond_var =
-        reinterpret_cast<hpx::condition_variable*>(cond->handle);
+    auto* cond_var = reinterpret_cast<hpx::condition_variable*>(cond->handle);
     cond->handle = nullptr;
 
     delete cond_var;
@@ -734,18 +726,13 @@ int hpxc_thread_detach(hpxc_thread_t thread)
 
 ///////////////////////////////////////////////////////////////////////////
 // FIXME: What should I do if not called from an hpx-thread?
-// IMPLEMENT: value_ptr.
 void hpxc_thread_exit(void* value_ptr)
 {
-    // FIXME: is it safe to throw from an extern "C" function?
-    // FIXME: Let's not throw a void* but package it up into a proper
-    //        exception object (derived from hpx::exception)
-    // throw reinterpret_cast<hpxc_return*>(value_ptr);
     auto self_id = hpx::threads::get_self_id();
     thread_handle* self = ::get_thread_data(self_id);
     HPX_ASSERT(self != nullptr);
-    self->retval.handle = value_ptr;
-    hpx::threads::interrupt_thread(self_id);
+    self->retval = value_ptr;
+    std::longjmp(self->env, -1);
 }
 
 ///////////////////////////////////////////////////////////////////////////
