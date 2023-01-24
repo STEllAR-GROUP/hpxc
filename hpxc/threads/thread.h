@@ -157,6 +157,9 @@ HPXC_API_EXPORT int hpxc_spin_unlock(hpxc_spinlock_t* mut);
 HPXC_API_EXPORT int hpxc_spin_trylock(hpxc_spinlock_t* mut);
 HPXC_API_EXPORT int hpxc_spin_destroy(hpxc_spinlock_t* mut);
 
+HPXC_API_EXPORT int hpxc_thread_testcancel();
+HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
+
 #if defined(HPXC_HAVE_RW_LOCK)
 HPXC_API_EXPORT int hpxc_rwlock_init(
     hpxc_rwlock_t* lock, hpxc_rwlockattr_t const* attr);
@@ -171,9 +174,6 @@ HPXC_API_EXPORT int hpxc_rwlock_timedwrlock(
     hpxc_rwlock_t* lock, struct timespec const* abstime);
 HPXC_API_EXPORT int hpxc_rwlock_trywrlock(hpxc_rwlock_t* lock);
 HPXC_API_EXPORT int hpxc_rwlock_unlock(hpxc_rwlock_t* lock);
-
-HPXC_API_EXPORT int hpxc_thread_testcancel();
-HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
 #endif
 
 enum
@@ -216,4 +216,3 @@ HPXC_API_EXPORT void hpxc_thread_cleanup_pop(int execute);
 #if defined(__cplusplus)
 }
 #endif
-
