@@ -171,10 +171,10 @@ HPXC_API_EXPORT int hpxc_rwlock_timedwrlock(
     hpxc_rwlock_t* lock, struct timespec const* abstime);
 HPXC_API_EXPORT int hpxc_rwlock_trywrlock(hpxc_rwlock_t* lock);
 HPXC_API_EXPORT int hpxc_rwlock_unlock(hpxc_rwlock_t* lock);
+#endif
 
 HPXC_API_EXPORT int hpxc_thread_testcancel();
 HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
-#endif
 
 enum
 {
