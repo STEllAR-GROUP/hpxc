@@ -94,6 +94,12 @@ HPXC_API_EXPORT int hpxc_thread_attr_setdetachstate(
 HPXC_API_EXPORT int hpxc_thread_attr_getdetachstate(
     hpxc_thread_attr_t* attr, int* detach);
 
+HPXC_API_EXPORT int hpxc_thread_getattr(
+    hpxc_thread_t thread, hpxc_thread_attr_t* attr);
+
+HPXC_API_EXPORT int hpxc_thread_attr_getstack(
+    hpxc_thread_attr_t* attr, void* addr, size_t* size);
+
 ///////////////////////////////////////////////////////////////////////////
 /// \brief Dummy function for legacy support
 HPXC_API_EXPORT int hpxc_thread_attr_setscope(
