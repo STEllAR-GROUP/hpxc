@@ -94,6 +94,12 @@ HPXC_API_EXPORT int hpxc_thread_attr_setdetachstate(
 HPXC_API_EXPORT int hpxc_thread_attr_getdetachstate(
     hpxc_thread_attr_t* attr, int* detach);
 
+HPXC_API_EXPORT int hpxc_thread_getattr(
+    hpxc_thread_t thread, hpxc_thread_attr_t* attr);
+
+HPXC_API_EXPORT int hpxc_thread_attr_getstack(
+    hpxc_thread_attr_t* attr, void* addr, size_t* size);
+
 ///////////////////////////////////////////////////////////////////////////
 /// \brief Dummy function for legacy support
 HPXC_API_EXPORT int hpxc_thread_attr_setscope(
@@ -157,6 +163,9 @@ HPXC_API_EXPORT int hpxc_spin_unlock(hpxc_spinlock_t* mut);
 HPXC_API_EXPORT int hpxc_spin_trylock(hpxc_spinlock_t* mut);
 HPXC_API_EXPORT int hpxc_spin_destroy(hpxc_spinlock_t* mut);
 
+HPXC_API_EXPORT int hpxc_thread_testcancel();
+HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
+
 #if defined(HPXC_HAVE_RW_LOCK)
 HPXC_API_EXPORT int hpxc_rwlock_init(
     hpxc_rwlock_t* lock, hpxc_rwlockattr_t const* attr);
@@ -172,9 +181,6 @@ HPXC_API_EXPORT int hpxc_rwlock_timedwrlock(
 HPXC_API_EXPORT int hpxc_rwlock_trywrlock(hpxc_rwlock_t* lock);
 HPXC_API_EXPORT int hpxc_rwlock_unlock(hpxc_rwlock_t* lock);
 #endif
-
-HPXC_API_EXPORT int hpxc_thread_testcancel();
-HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
 
 enum
 {
@@ -216,4 +222,3 @@ HPXC_API_EXPORT void hpxc_thread_cleanup_pop(int execute);
 #if defined(__cplusplus)
 }
 #endif
-

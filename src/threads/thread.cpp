@@ -59,6 +59,18 @@ struct thread_handle
       , retval(nullptr)
     {
     }
+    thread_handle(hpx::threads::thread_id_ref_type id)
+      : id(id)
+#if defined(HPX_DEBUG)
+      , magic(MAGIC)
+#endif
+      , refc(2)
+      , promise()
+      , future(promise.get_future())
+      , cancel_flags(HPXC_THREAD_CANCEL_ENABLE)
+      , retval(nullptr)
+    {
+    }
 
     ~thread_handle();
 };
@@ -86,8 +98,18 @@ thread_handle::~thread_handle()
 
 thread_handle* get_thread_data(hpx::threads::thread_id_type id)
 {
-    auto* thandle =
-        reinterpret_cast<thread_handle*>(hpx::threads::get_thread_data(id));
+    thread_handle* thandle;
+    std::size_t th_data = hpx::threads::get_thread_data(id);
+    if (th_data)
+    {
+        thandle = reinterpret_cast<thread_handle*>(th_data);
+    }
+    else
+    {
+        thandle = new thread_handle(id);
+        hpx::threads::set_thread_data(id, reinterpret_cast<std::size_t>(thandle));
+    }
+    // thread_handle* thandle = new thread_handle(id);
     HPX_ASSERT(thandle);
     HPX_ASSERT(thandle->magic == MAGIC);
     return thandle;
@@ -240,6 +262,11 @@ int hpxc_thread_attr_setscope(hpxc_thread_attr_t* attr, int scope)
     return 0;
 }
 
+int hpxc_thread_getattr(hpxc_thread_t th, hpxc_thread_attr_t* attr)
+{
+    return 0;
+}
+
 int hpxc_thread_attr_getscope(hpxc_thread_attr_t* attr, int* scope)
 {
     if (attr == nullptr)
@@ -275,6 +302,12 @@ int hpxc_thread_attr_setstacksize(hpxc_thread_attr_t* attr, size_t stacksize)
         handle->stacksize = hpx::threads::thread_stacksize::small_;
     }
 
+    return 0;
+}
+
+int hpxc_thread_attr_getstack(
+    hpxc_thread_attr_t* attr, void* addr, size_t* size)
+{
     return 0;
 }
 
