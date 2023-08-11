@@ -59,18 +59,6 @@ struct thread_handle
       , retval(nullptr)
     {
     }
-    thread_handle(hpx::threads::thread_id_ref_type id)
-      : id(id)
-#if defined(HPX_DEBUG)
-      , magic(MAGIC)
-#endif
-      , refc(2)
-      , promise()
-      , future(promise.get_future())
-      , cancel_flags(HPXC_THREAD_CANCEL_ENABLE)
-      , retval(nullptr)
-    {
-    }
 
     ~thread_handle();
 };
@@ -96,20 +84,39 @@ thread_handle::~thread_handle()
     }
 }
 
+// Register an existing hpx thread (not spawned through hpxc) with hpxc
+void hpxc_register_hpx_thread(hpx::threads::thread_id_type id)
+{
+    // Thread already registered, do nothing
+    if (hpx::threads::get_thread_data(id) != 0)
+        return;
+    thread_handle* thandle = new thread_handle();
+    thandle->id = id;
+    --thandle->refc;
+    hpx::threads::set_thread_data(id, reinterpret_cast<size_t>(thandle));
+    // Delete thread_handle data after hpx thread terminates
+    hpx::threads::add_thread_exit_callback(id, [thandle]() {
+        --thandle->refc;
+        if (thandle->refc == 0)
+        {
+            delete thandle;
+        }
+    });
+}
+
 thread_handle* get_thread_data(hpx::threads::thread_id_type id)
 {
     thread_handle* thandle;
     std::size_t th_data = hpx::threads::get_thread_data(id);
-    if (th_data)
+    if (th_data == 0)
     {
-        thandle = reinterpret_cast<thread_handle*>(th_data);
+        // Thread was not registered with hpxc
+        hpxc_register_hpx_thread(id);
+        th_data = hpx::threads::get_thread_data(id);
     }
-    else
-    {
-        thandle = new thread_handle(id);
-        hpx::threads::set_thread_data(id, reinterpret_cast<std::size_t>(thandle));
-    }
-    // thread_handle* thandle = new thread_handle(id);
+
+    thandle = reinterpret_cast<thread_handle*>(th_data);
+
     HPX_ASSERT(thandle);
     HPX_ASSERT(thandle->magic == MAGIC);
     return thandle;
@@ -825,7 +832,11 @@ int hpxc_setspecific(hpxc_key_t key, const void* value)
 
 void* hpxc_getspecific(hpxc_key_t key)
 {
-    thread_handle* self = ::get_thread_data(hpx::threads::get_self_id());
+    hpx::threads::thread_id_type id = hpx::threads::get_self_id();
+    // Check if this is a valid hpx thread
+    if (id == hpx::threads::invalid_thread_id)
+        return nullptr;
+    thread_handle* self = ::get_thread_data(id);
     auto* handle = reinterpret_cast<tls_key*>(key.handle);
     if (handle == nullptr)
         return nullptr;
