@@ -6,7 +6,7 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/hpx.hpp>
-#include <hpx/hpx_on_finalize.hpp>
+#include <hpx/init.hpp>
 
 #include <hpxc/config.h>
 #include <hpxc/threads.h>
@@ -819,7 +819,17 @@ int hpxc_key_create(hpxc_key_t* key, void (*destructor)(void*))
 
 int hpxc_key_delete(hpxc_key_t key)
 {
-    delete reinterpret_cast<tls_key*>(key.handle);
+    thread_handle* self = ::get_thread_data(hpx::threads::get_self_id());
+    auto* handle = reinterpret_cast<tls_key*>(key.handle);
+
+    auto n_erased = self->thread_local_storage.erase(handle);
+    if (n_erased == 0)
+    {
+        // Key was not found
+        return EINVAL;
+    }
+
+    delete handle;
     return 0;
 }
 
@@ -967,11 +977,10 @@ int hpxc_rwlock_unlock(hpxc_rwlock_t* mutex)
 
 int hpxc_register_shutdown_function(shutdown_function_t f)
 {
-	if (!f)
-	    return EINVAL;
-	//hpx::shutdown_function_type foo(&f);
-	hpx::on_finalize = f;
-	return 0;
+    if (!f)
+        return EINVAL;
+    hpx::on_finalize = f;
+    return 0;
 }
 
 }    // extern "C"
