@@ -6,6 +6,7 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpx/hpx.hpp>
+#include <hpx/hpx_on_finalize.hpp>
 
 #include <hpxc/config.h>
 #include <hpxc/threads.h>
@@ -74,6 +75,8 @@ struct thread_handle
 
     ~thread_handle();
 };
+
+typedef hpx::shutdown_function_type shutdown_function_type;
 
 thread_handle::~thread_handle()
 {
@@ -950,5 +953,14 @@ int hpxc_rwlock_unlock(hpxc_rwlock_t* mutex)
     return 0;
 }
 #endif
+
+int hpxc_register_shutdown_function(shutdown_function_t f)
+{
+	if (!f)
+	    return EINVAL;
+	//hpx::shutdown_function_type foo(&f);
+	hpx::on_finalize = f;
+	return 0;
+}
 
 }    // extern "C"

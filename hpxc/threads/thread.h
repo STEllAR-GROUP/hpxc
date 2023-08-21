@@ -69,6 +69,8 @@ typedef struct hpxc_rwlockattr_t
 
 typedef hpxc_mutex_t hpxc_spinlock_t;
 
+typedef void (*shutdown_function_t)();
+
 ///////////////////////////////////////////////////////////////////////////
 /// \brief Creates a new thread of execution.
 HPXC_API_EXPORT int hpxc_thread_create(hpxc_thread_t* thread_id,
@@ -165,6 +167,8 @@ HPXC_API_EXPORT int hpxc_spin_destroy(hpxc_spinlock_t* mut);
 
 HPXC_API_EXPORT int hpxc_thread_testcancel();
 HPXC_API_EXPORT int hpxc_thread_cancel(hpxc_thread_t thread_id);
+
+HPXC_API_EXPORT int hpxc_register_shutdown_function(shutdown_function_t f);
 
 #if defined(HPXC_HAVE_RW_LOCK)
 HPXC_API_EXPORT int hpxc_rwlock_init(
