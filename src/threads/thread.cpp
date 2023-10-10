@@ -26,9 +26,10 @@ const int MAGIC = 0xCAFEBABE;
 struct tls_key
 {
     void (*destructor_function)(void*) = nullptr;
+    std::atomic<int> refc = 1;
 
     tls_key(void (*destructor)(void*))
-      : destructor_function(destructor)
+      : destructor_function(destructor), refc(1)
     {
     }
 };
@@ -72,10 +73,17 @@ thread_handle::~thread_handle()
     for (auto tls_iter = thread_local_storage.begin();
          tls_iter != thread_local_storage.end(); ++tls_iter)
     {
-        if ((*tls_iter).first->destructor_function)
+        tls_key* key = (*tls_iter).first;
+        const void* value = (*tls_iter).second;
+        // Copy destructor to avoid race condition with hpxc_key_delete
+        void (*destructor)(void*) = key->destructor_function;
+        if (destructor)
         {
-            ((*tls_iter).first->destructor_function)(
-                const_cast<void*>((*tls_iter).second));
+            (destructor)(const_cast<void*>(value));
+        }
+        if (--key->refc == 0)
+        {
+            delete key;
         }
     }
 
@@ -822,14 +830,11 @@ int hpxc_key_delete(hpxc_key_t key)
     thread_handle* self = ::get_thread_data(hpx::threads::get_self_id());
     auto* handle = reinterpret_cast<tls_key*>(key.handle);
 
-    auto n_erased = self->thread_local_storage.erase(handle);
-    if (n_erased == 0)
-    {
-        // Key was not found
-        return EINVAL;
+    // Previous destructor should not be called after key deletion
+    handle->destructor_function = nullptr;
+    if(--handle->refc == 0){
+        delete handle;
     }
-
-    delete handle;
     return 0;
 }
 
@@ -839,6 +844,7 @@ int hpxc_setspecific(hpxc_key_t key, const void* value)
     auto* handle = reinterpret_cast<tls_key*>(key.handle);
     if (handle == nullptr)
         return ESRCH;
+    ++handle->refc;
     self->thread_local_storage[handle] = value;
     return 0;
 }
