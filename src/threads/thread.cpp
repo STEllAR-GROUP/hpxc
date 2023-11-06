@@ -433,6 +433,12 @@ int hpxc_thread_create(hpxc_thread_t* thread, hpxc_thread_attr_t const* attr,
     return 0;
 }
 
+int hpxc_yield()
+{
+    hpx::this_thread::suspend();
+    return 0;
+}
+
 }    // extern "C"
 
 // IMPLEMENT: value_ptr.

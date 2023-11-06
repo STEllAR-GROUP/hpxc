@@ -77,6 +77,8 @@ HPXC_API_EXPORT int hpxc_thread_create(hpxc_thread_t* thread_id,
     hpxc_thread_attr_t const* attributes, void* (*thread_function)(void*),
     void* arguments);
 
+HPXC_API_EXPORT int hpxc_yield();
+
 ///////////////////////////////////////////////////////////////////////////
 /// \brief Suspend the calling thread until the target thread terminates.
 HPXC_API_EXPORT int hpxc_thread_join(hpxc_thread_t thread_id, void** value_ptr);
