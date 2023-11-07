@@ -435,7 +435,7 @@ int hpxc_thread_create(hpxc_thread_t* thread, hpxc_thread_attr_t const* attr,
 
 int hpxc_yield()
 {
-    hpx::this_thread::suspend();
+    hpx::this_thread::yield();
     return 0;
 }
 
