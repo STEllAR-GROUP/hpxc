@@ -654,7 +654,9 @@ int hpxc_mutex_trylock(hpxc_mutex_t* mutex)
     if (mutex == nullptr)
         return EINVAL;
     auto* lock = reinterpret_cast<hpx::spinlock*>(mutex->handle);
-    return lock->try_lock();
+    if (lock == nullptr)
+        return EINVAL;
+    return lock->try_lock() ? 0 : EBUSY;
 }
 
 int hpxc_spin_init(hpxc_spinlock_t* mut, void* unused)
