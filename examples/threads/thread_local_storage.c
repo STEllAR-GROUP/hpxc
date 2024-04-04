@@ -5,6 +5,7 @@
 
 #include <assert.h>
 #include <hpxc/threads.h>
+#include <hpxc/util/wrap_main.h>
 #include <stdio.h>
 
 hpxc_key_t key;

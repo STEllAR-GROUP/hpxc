@@ -4,6 +4,8 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <hpxc/threads.h>
+#include <hpxc/util/wrap_main.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #if !defined(_MSC_VER)

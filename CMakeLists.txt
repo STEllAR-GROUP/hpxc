@@ -22,6 +22,7 @@ set(HPXC_VERSION
 )
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 cmake_policy(SET CMP0022 NEW)
 
@@ -32,6 +33,9 @@ endif()
 include(HPXC_Utils)
 include(HPXC_SetOutputPaths)
 include(HPXC_SetupHPX)
+
+option(HPXC_WITH_DYNAMIC_HPXC_MAIN "Build hpxc with dynamic main wrap" ON)
+option(HPXC_WITH_SHARED_LIBS "Build hpxc as a shared library" OFF)
 
 add_subdirectory(src)
 
