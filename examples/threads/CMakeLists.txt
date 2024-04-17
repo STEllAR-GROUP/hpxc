@@ -24,11 +24,20 @@ foreach(example_program ${example_programs})
 
   source_group("Source Files" FILES ${sources})
 
+  set(dependencies hpxc)
+  set(link_flags)
+  
+  if (HPXC_WITH_DYNAMIC_HPXC_MAIN)
+    set(dependencies ${dependencies} hpxc_wrap)
+    set(link_flags ${link_flags} -Wl,-wrap=main)
+  endif()
+
   # add example executable
   add_hpx_executable(
     ${example_program}
     SOURCES ${sources} ${${example_program}_FLAGS}
-    DEPENDENCIES hpxc
+    DEPENDENCIES ${dependencies}
+    LINK_FLAGS ${link_flags}
     LANGUAGE C
     FOLDER "Examples/Threads"
   )

@@ -12,9 +12,10 @@
 #include <unistd.h>
 #endif
 
-// this include has to come afte the system include
+// this include has to come after the system include
 // to avoid conflicting types
 #include <hpxc/pthread_compatibility.h>
+#include <hpxc/util/wrap_main.h>
 
 pthread_attr_t attr;
 
