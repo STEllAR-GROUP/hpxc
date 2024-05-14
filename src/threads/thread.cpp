@@ -104,6 +104,7 @@ void hpxc_register_hpx_thread(hpx::threads::thread_id_type id)
     thread_handle* thandle = new thread_handle();
     thandle->id = id;
     --thandle->refc;
+    thandle->promise.set_value();
     hpx::threads::set_thread_data(id, reinterpret_cast<size_t>(thandle));
     // Delete thread_handle data after hpx thread terminates
     hpx::threads::add_thread_exit_callback(id, [thandle]() {
