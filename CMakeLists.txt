@@ -35,6 +35,7 @@ option(HPXC_WITH_DYNAMIC_HPXC_MAIN "Build hpxc with dynamic main wrap" ON)
 option(HPXC_WITH_SHARED_LIBS "Build hpxc as a shared library" OFF)
 option(HPXC_WITH_FETCH_HPX "Fetch HPX using CMake's FetchContent" OFF)
 
+include(HPXC_ConfigDefinitions)
 include(HPXC_Utils)
 include(HPXC_SetOutputPaths)
 include(HPXC_SetupHPX)
@@ -47,25 +48,30 @@ add_subdirectory(examples)
 install(
   DIRECTORY hpxc
   DESTINATION include
-  FILES_MATCHING
-  PATTERN "*.h"
-  PATTERN "*.hpp"
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+
+# Install generated header files
+install(
+  DIRECTORY ${CMAKE_BINARY_DIR}/hpxc
+  DESTINATION include
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
 )
 
 # Export .cmake files for making HPXC compatible with CMake's find_package
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/HPXC/HPXCConfigVersion.cmake"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/HPXCConfigVersion.cmake"
   VERSION ${HPXC_VERSION}
   COMPATIBILITY AnyNewerVersion
 )
 
 export(EXPORT HPXCTargets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/HPXC/HPXCTargets.cmake"
+  FILE "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/HPXCTargets.cmake"
   NAMESPACE HPXC::
 )
 configure_file(cmake/HPXCConfig.cmake
-  "${CMAKE_CURRENT_BINARY_DIR}/HPXC/HPXCConfig.cmake"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/HPXCConfig.cmake"
   COPYONLY
 )
 
@@ -77,7 +83,7 @@ install(EXPORT HPXCTargets
 )
 
 install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/HPXC/HPXCConfigVersion.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/HPXC/HPXCConfig.cmake"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/HPXCConfigVersion.cmake"
+  "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cmake/HPXCConfig.cmake"
   DESTINATION "${ConfigPackageLocation}"
 )

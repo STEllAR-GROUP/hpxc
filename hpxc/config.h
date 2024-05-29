@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <hpxc/config/config_definitions.h>
 #include <hpxc/config/export_definitions.h>
 
 #if !defined(_MSC_VER)
