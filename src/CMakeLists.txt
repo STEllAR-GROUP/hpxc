@@ -29,16 +29,15 @@ add_hpx_library(
   SOURCES ${PROJECT_SOURCE_DIR}/src/util/wrap_main.cpp
   HEADERS ${PROJECT_SOURCE_DIR}/hpxc/util/wrap_main.h
 )
-
 target_include_directories(hpxc_wrap PUBLIC
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
   $<INSTALL_INTERFACE:include>
 )
-
 if(HPXC_WITH_DYNAMIC_HPXC_MAIN)
   hpxc_add_config_definition(HPXC_HAVE_DYNAMIC_HPXC_MAIN)
   target_link_options(hpxc_wrap PUBLIC -Wl,-wrap=main)
 endif()
+add_library(HPXC::hpxc_wrap ALIAS hpxc_wrap)
 
 set(config_header "${CMAKE_BINARY_DIR}/hpxc/config/config_definitions.h")
 write_config_definitions_file(${config_header})
@@ -63,7 +62,6 @@ target_include_directories(hpxc PUBLIC
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
   $<INSTALL_INTERFACE:include>
 )
-
 set_target_properties(
   hpxc
   PROPERTIES COMPILE_DEFINITIONS HPXC_EXPORTS
@@ -73,6 +71,7 @@ set_target_properties(
   OUTPUT_NAME hpxc${HPX_DEBUG_POSTFIX}
   FOLDER "Core"
 )
+add_library(HPXC::hpxc ALIAS hpxc)
 
 # Install the hpxc library
 install(TARGETS hpxc hpxc_wrap
