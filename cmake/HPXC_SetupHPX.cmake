@@ -23,11 +23,11 @@ elseif(NOT TARGET HPX::hpx AND NOT HPX_FIND_PACKAGE)
 
   if(FETCHCONTENT_SOURCE_DIR_HPX)
     hpxc_info(
-      "HPXC_WITH_FETCH_HPX=${HPX_WITH_FETCH_HPX}, HPX will be used through CMake's FetchContent and installed alongside HPX (FETCHCONTENT_SOURCE_DIR_HPX=${FETCHCONTENT_SOURCE_DIR_HPX})"
+      "HPXC_WITH_FETCH_HPX=${HPXC_WITH_FETCH_HPX}, HPX will be used through CMake's FetchContent and installed alongside HPXC (FETCHCONTENT_SOURCE_DIR_HPX=${FETCHCONTENT_SOURCE_DIR_HPX})"
     )
   else()
     hpxc_info(
-      "HPXC_WITH_FETCH_HPX=${HPX_WITH_FETCH_HPX}, HPX will be fetched using CMake's FetchContent and installed alongside HPX (HPXC_WITH_HPX_TAG=${HPXC_WITH_HPX_TAG})"
+      "HPXC_WITH_FETCH_HPX=${HPXC_WITH_FETCH_HPX}, HPX will be fetched using CMake's FetchContent and installed alongside HPXC (HPXC_WITH_HPX_TAG=${HPXC_WITH_HPX_TAG})"
     )
   endif()
   include(FetchContent)

@@ -3,6 +3,8 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <hpxc/config/config_definitions.h>
+
 // if HPXC_HAVE_DYNAMIC_HPXC_MAIN is defined, the wrapping is accomplished by linking against hpxc_wrap.a (plus -wrap=main linker flag)
 // else, it is done by the following macro, which renames main to hpxc_user_main
 #if !defined(HPXC_EXPORTS) && !defined(HPXC_HAVE_DYNAMIC_HPXC_MAIN)
