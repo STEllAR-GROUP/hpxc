@@ -25,7 +25,7 @@ const int MAGIC = 0xCAFEBABE;
 // Possibly should encapsulate
 struct tls_key
 {
-    void (*destructor_function)(void*) = nullptr;
+    std::atomic<void (*)(void*)> destructor_function;
     std::atomic<int> refc = 1;
 
     tls_key(void (*destructor)(void*))
@@ -75,8 +75,7 @@ thread_handle::~thread_handle()
     {
         tls_key* key = (*tls_iter).first;
         const void* value = (*tls_iter).second;
-        // Copy destructor to avoid race condition with hpxc_key_delete
-        void (*destructor)(void*) = key->destructor_function;
+        void (*destructor)(void*) = key->destructor_function.load();
         if (destructor)
         {
             (destructor)(const_cast<void*>(value));
@@ -108,8 +107,7 @@ void hpxc_register_hpx_thread(hpx::threads::thread_id_type id)
     hpx::threads::set_thread_data(id, reinterpret_cast<size_t>(thandle));
     // Delete thread_handle data after hpx thread terminates
     hpx::threads::add_thread_exit_callback(id, [thandle]() {
-        --thandle->refc;
-        if (thandle->refc == 0)
+        if (--thandle->refc == 0)
         {
             delete thandle;
         }
@@ -839,11 +837,10 @@ int hpxc_key_delete(hpxc_key_t key)
     thread_handle* self = ::get_thread_data(hpx::threads::get_self_id());
     auto* handle = reinterpret_cast<tls_key*>(key.handle);
 
-    // Previous destructor should not be called after key deletion
-    handle->destructor_function = nullptr;
-    if(--handle->refc == 0){
-        delete handle;
-    }
+    // Removing the key from all threads would be a lot of work
+    // Instead, make sure the destructor function is not called,
+    // which would be the only side effect of removing the key
+    handle->destructor_function.store(nullptr);
     return 0;
 }
 
